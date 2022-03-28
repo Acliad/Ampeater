@@ -1,0 +1,58 @@
+References,Value,Digi-Key PN,Quantity Per PCB,Footprint,Datasheet
+"C204, C207",82pF,1276-CL10C820JB81PNDCT-ND,2,C_0603_1608Metric,~
+"C205, C208",270pF,1276-1256-1-ND,2,C_0603_1608Metric,~
+"C203, C206",430pF,490-1442-1-ND,2,C_0603_1608Metric,~
+"C302, C305, C308",0.01uF,1276-1009-1-ND,3,C_0603_1608Metric,~
+"C202, C301, C304, C306, C309, C310",0.1uF,1276-CL10B104KB8NNNLCT-ND,6,C_0603_1608Metric,~
+"C201, C307, C311",1uF,1276-1102-1-ND,3,C_0603_1608Metric,~
+"C101, C102, C103, C303",10uF,490-18214-1-ND,4,C_0603_1608Metric,~
+"D301, D302",1N4007,1655-1N4007FLCT-ND,2,D_SOD-123F,~
+DS301,"2.4"" Color LCD",,1,,
+HS201,1.3 C°/W,,1,,~
+J101,12V Input,CP-102AH-ND,1,BarrelJack_CUI_PJ-102AH_Horizontal,~
+J103,I+_Banana,BKCT3151SP-4-ND,1,CalTest_CT3151,~
+J105,I-_Banana,BKCT3151SP-6-ND,1,CalTest_CT3151,~
+J104,I_TerminalBlock,732-10955-ND,1,TerminalBlock_Philmore_TB132_1x02_P5.00mm_Horizontal,~
+J302,SWD_Header,2057-PH1RA-06-UA-ND,1,PinHeader_1x06_P2.54mm_Horizontal,~
+J301,UART_Header,2057-PH2RA-04-UA-ND,1,PinHeader_2x02_P2.54mm_Horizontal,~
+JP201,0603_Jumper,,1,Jumper-2_0603_1608Metric_Trace12mil,~
+M201,Fan,455-2247-ND,1,JST_XH_B2B-XH-AM_1x02_P2.50mm_Vertical,~
+NT201,NetTie_GND_I-,,1,NetTie-2_SMD_Pad8.0mils,~
+NT202,NetTie_GND_I-,,1,NetTie-2_SMD_Pad8.0mils,~
+"Q201, Q202, Q203, Q204",IRF3205,IRF3205PBF-ND,4,R_0603_1608Metric,~
+"R211, R212, R219, R220",0.1,511-1692-1-ND,4,Rohm_GMR100_B6.40x3.20mm,~
+"R214, R222",2,738-CSRT2512FT2R00-UPCT-ND,2,R_2512_6332Metric,~
+"R202, R216",91,311-91.0HRCT-ND,2,R_0603_1608Metric,~
+"R204, R205, R218, R310",100,A106047CT-ND,4,R_0603_1608Metric,~
+"R201, R210, R215, R301, R304",1.5k,A121524CT-ND,5,R_0603_1608Metric,~
+"R203, R217",5.1k,CR0603-FX-5101ELFCT-ND,2,R_0603_1608Metric,~
+R305,6.2k,13-RC0603FR-136K2LCT-ND,1,R_0603_1608Metric,~
+"R206, R207, R208, R209, R213, R221, R306, R307, R308, R309",10k,A106048CT-ND,10,R_0603_1608Metric,~
+R303,13k,CR0603-FX-1302ELFCT-ND,1,R_0603_1608Metric,~
+R302,30k,CR0603-FX-3002ELFCT-ND,1,R_0603_1608Metric,~
+SW304,Encoder/Range Select,PEC12R-4217F-S0024-ND,1,RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm,~
+SW302,On/Off,732-13655-1-ND,1,SW_PUSH-12mm_Wuerth-430476085716_HandSolder,~
+SW101,Power Switch,EG1918-ND,1,,~
+SW301,RST,CKN12309-1-ND,1,SW_PUSH-12mm_Wuerth-430476085716_HandSolder,~
+SW303,Slew Rate,732-13655-1-ND,1,SW_PUSH-12mm_Wuerth-430476085716_HandSolder,~
+U303,AD5452YRM,AD5452YRMZ-REEL7CT-ND,1,MSOP-8_3x3mm_P0.65mm,https://www.analog.com/media/en/technical-documentation/data-sheets/ad5450_5451_5452_5453.pdf
+U101,AZ1117-3.3,AZ1117CD-3.3TRG1DICT-ND,1,TO-252-2,https://www.diodes.com/assets/Datasheets/AZ1117.pdf
+U302,MCP1501,MCP1501T-10E/CHYCT-ND,1,SOT-23-6,http://ww1.microchip.com/downloads/en/DeviceDoc/20005474E.pdf
+U301,STM32L041F6Px,497-16810-ND,1,TSSOP-20_4.4x6.5mm_P0.65mm,http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00152023.pdf
+U201,TLV9162,TLV9162IDDFR,1,SOT-23-8,~
+
+
+
+
+
+Component Groups:,41
+Component Count:,82
+Fitted Components:,82
+Number of PCBs:,1
+Total components:,82
+Schematic Version:,0
+Schematic Date:,2022-03-14
+PCB Variant:,normal
+BoM Date:,"Wednesday, March 16, 2022 at 10:53:04 AM"
+Schematic Source:,Ampeater.kicad_sch
+KiCad Version:,Eeschema (6.0.2-0)
