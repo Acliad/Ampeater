@@ -2005,7 +2005,7 @@
       (reference "JP301") (unit 1) (value "DAC_Jumper") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm")
     )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/19aa751c-1a6b-4159-b7f0-ac71298cf9ba"
-      (reference "M201") (unit 1) (value "Fan") (footprint "Connector_JST:JST_XH_B2B-XH-AM_1x02_P2.50mm_Vertical")
+      (reference "M201") (unit 1) (value "Fan") (footprint "Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical")
     )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/82adda2c-e51f-4b36-aa92-1b947f2aa177"
       (reference "NT201") (unit 1) (value "NetTie_GND_I-") (footprint "irex_NetTie:NetTie-2_SMD_Pad8.0mils")
@@ -2013,17 +2013,29 @@
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/63cfe8a0-ba9b-492d-a611-d7f086d397da"
       (reference "NT202") (unit 1) (value "NetTie_GND_I-") (footprint "irex_NetTie:NetTie-2_SMD_Pad8.0mils")
     )
+    (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/f4af370f-4d84-4ca5-90f8-7660429937f1"
+      (reference "NT203") (unit 1) (value "NetTie_2") (footprint "irex_NetTie:NetTie-2_SMD_Pad12.0mils")
+    )
+    (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/ad10d053-a268-48e6-b004-333b70fe3293"
+      (reference "NT204") (unit 1) (value "NetTie_2") (footprint "irex_NetTie:NetTie-2_SMD_Pad12.0mils")
+    )
+    (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/597828ca-5e42-4d58-a81e-48bf6ccfbd3d"
+      (reference "NT205") (unit 1) (value "NetTie_2") (footprint "irex_NetTie:NetTie-2_SMD_Pad12.0mils")
+    )
+    (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/8d2d7b5e-4aea-448f-b34d-0742ac96f399"
+      (reference "NT206") (unit 1) (value "NetTie_2") (footprint "irex_NetTie:NetTie-2_SMD_Pad12.0mils")
+    )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/dc475fc1-ef22-484a-9591-1b9f7566fbd1"
-      (reference "Q201") (unit 1) (value "IRF3205") (footprint "Resistor_SMD:R_0603_1608Metric")
+      (reference "Q201") (unit 1) (value "IRF3205") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
     )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/1aa62212-ecd4-47f0-b927-73c9ab820674"
-      (reference "Q202") (unit 1) (value "IRF3205") (footprint "Resistor_SMD:R_0603_1608Metric")
+      (reference "Q202") (unit 1) (value "IRF3205") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
     )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/eea3b663-c3cc-40f1-ad0a-f9da5379cbd7"
-      (reference "Q203") (unit 1) (value "IRF3205") (footprint "Resistor_SMD:R_0603_1608Metric")
+      (reference "Q203") (unit 1) (value "IRF3205") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
     )
     (path "/320090ba-4f6a-4f98-be3a-019d4a87b84a/00423d75-5145-4727-a2ca-a6be3680a170"
-      (reference "Q204") (unit 1) (value "IRF3205") (footprint "Resistor_SMD:R_0603_1608Metric")
+      (reference "Q204") (unit 1) (value "IRF3205") (footprint "Package_TO_SOT_THT:TO-220-3_Vertical")
     )
     (path "/a8a83bf2-0140-4087-a327-94796ad05266"
       (reference "R101") (unit 1) (value "1.5k") (footprint "Resistor_SMD:R_0603_1608Metric")
@@ -2128,7 +2140,7 @@
       (reference "SW101") (unit 1) (value "Power Switch") (footprint "irex_Button_Switch_THT:SW_E-Switch_EG1271_SPDT")
     )
     (path "/c0791cbd-d4b9-45b6-8c5f-d6ecf284a9d6/4070db08-eb02-41f4-851e-d9447c3a41a9"
-      (reference "SW301") (unit 1) (value "RST") (footprint "irex_Button_Switch_SMD:SW_PUSH-12mm_Wuerth-430476085716_HandSolder")
+      (reference "SW301") (unit 1) (value "RST") (footprint "irex_Button_Switch_SMD:SW-PUSH-6x3.5mm_CK-PTS636SL43x_HandSolder")
     )
     (path "/c0791cbd-d4b9-45b6-8c5f-d6ecf284a9d6/7289e297-9e18-4e41-96a9-52118cd07972"
       (reference "SW302") (unit 1) (value "On/Off") (footprint "irex_Button_Switch_SMD:SW_PUSH-12mm_Wuerth-430476085716_HandSolder")
@@ -2141,6 +2153,9 @@
     )
     (path "/c0791cbd-d4b9-45b6-8c5f-d6ecf284a9d6/f3e955ca-0b97-449a-9706-b016b428808d"
       (reference "TP301") (unit 1) (value "BOOT0") (footprint "TestPoint:TestPoint_THTPad_D2.5mm_Drill1.2mm")
+    )
+    (path "/c0791cbd-d4b9-45b6-8c5f-d6ecf284a9d6/8c479ec6-e0d4-420f-9129-e1aa12bde2b3"
+      (reference "TP302") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_THTPad_D2.5mm_Drill1.2mm")
     )
     (path "/f320c168-dfc7-4551-9415-29763923cadb"
       (reference "U101") (unit 1) (value "AZ1117-3.3") (footprint "Package_TO_SOT_SMD:TO-252-2")

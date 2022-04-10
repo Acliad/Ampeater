@@ -1,0 +1,21 @@
+(version 1)
+
+(rule "Vsense A Net"
+	(constraint clearance (min 0.01mil))
+	(condition "A.NetName == '*Vsense_A' && B.NetName == '*Vsense_A_NT")
+)
+
+(rule "Vsense B Net"
+	(constraint clearance (min 0.01mil))
+	(condition "A.NetName == '*Vsense_B' && B.NetName == '*Vsense_B_NT")
+)
+
+(rule "Vsense FET A Net"
+	(constraint clearance (min 0.01mil))
+	(condition "A.NetName == '*Vsense_FET_A' && B.NetName == '*Vsense_FET_A_NT")
+)
+
+(rule "Vsense FET B Net"
+	(constraint clearance (min 0.01mil))
+	(condition "A.NetName == '*Vsense_FET_B' && B.NetName == '*Vsense_FET_B_NT")
+)
