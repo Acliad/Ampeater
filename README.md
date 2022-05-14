@@ -1,4 +1,9 @@
 # TODO
+- Add buffer to range select switch
+- Increase reference voltage
+- (Probably) decrease low range current sense resistor
+- Make slightly longer for connectors
+- Add power switch labels
 
 # Specifications
 The table below outlines the basic specs for the load.

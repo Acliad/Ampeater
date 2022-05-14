@@ -1,0 +1,752 @@
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 1
+
+
+   1              		.cpu cortex-m0plus
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 0
+  10              		.eabi_attribute 18, 4
+  11              		.file	"encoder.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text._ENCODER_clampValue,"ax",%progbits
+  16              		.align	1
+  17              		.arch armv6s-m
+  18              		.syntax unified
+  19              		.code	16
+  20              		.thumb_func
+  21              		.fpu softvfp
+  23              	_ENCODER_clampValue:
+  24              	.LFB47:
+  25              		.file 1 "Libraries/stm32_encoder/encoder.c"
+   1:Libraries/stm32_encoder/encoder.c **** /**
+   2:Libraries/stm32_encoder/encoder.c ****  * @file encoder.c
+   3:Libraries/stm32_encoder/encoder.c ****  * @author irex
+   4:Libraries/stm32_encoder/encoder.c ****  * @brief Basic library for reading rotary encoder
+   5:Libraries/stm32_encoder/encoder.c ****  * @version 0.1
+   6:Libraries/stm32_encoder/encoder.c ****  * @date 2022-05-08
+   7:Libraries/stm32_encoder/encoder.c ****  * 
+   8:Libraries/stm32_encoder/encoder.c ****  * @copyright Copyright (c) 2022
+   9:Libraries/stm32_encoder/encoder.c ****  * 
+  10:Libraries/stm32_encoder/encoder.c ****  */
+  11:Libraries/stm32_encoder/encoder.c **** 
+  12:Libraries/stm32_encoder/encoder.c **** #include "encoder.h"
+  13:Libraries/stm32_encoder/encoder.c **** 
+  14:Libraries/stm32_encoder/encoder.c **** #define DELTA 1 // Change by DELTA every pulse of the encoder
+  15:Libraries/stm32_encoder/encoder.c **** 
+  16:Libraries/stm32_encoder/encoder.c **** volatile int32_t _encoder_value;
+  17:Libraries/stm32_encoder/encoder.c **** volatile int32_t _encoder_delta;
+  18:Libraries/stm32_encoder/encoder.c **** int32_t _min_value;
+  19:Libraries/stm32_encoder/encoder.c **** int32_t _max_value;
+  20:Libraries/stm32_encoder/encoder.c **** 
+  21:Libraries/stm32_encoder/encoder.c **** static void _ENCODER_clampValue(void);
+  22:Libraries/stm32_encoder/encoder.c **** 
+  23:Libraries/stm32_encoder/encoder.c **** void ENCODER_init(int32_t min_value, int32_t max_value) {
+  24:Libraries/stm32_encoder/encoder.c ****     _encoder_value = 0;
+  25:Libraries/stm32_encoder/encoder.c ****     // Configure the GPIO pins for dual edge interrupt
+  26:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_DeInit(GPIOC, ENCODER_A_Pin | ENCODER_B_Pin);
+  27:Libraries/stm32_encoder/encoder.c **** 
+  28:Libraries/stm32_encoder/encoder.c ****     GPIO_InitTypeDef GPIO_InitStruct = {0};
+  29:Libraries/stm32_encoder/encoder.c **** 
+  30:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pin = ENCODER_A_Pin | ENCODER_B_Pin;
+  31:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  32:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pull = GPIO_PULLUP;
+  33:Libraries/stm32_encoder/encoder.c **** 
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 2
+
+
+  34:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  35:Libraries/stm32_encoder/encoder.c **** 
+  36:Libraries/stm32_encoder/encoder.c ****     // Enable interrupt on the encoder pins
+  37:Libraries/stm32_encoder/encoder.c ****     HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  38:Libraries/stm32_encoder/encoder.c ****     HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+  39:Libraries/stm32_encoder/encoder.c **** 
+  40:Libraries/stm32_encoder/encoder.c ****     _min_value = min_value;
+  41:Libraries/stm32_encoder/encoder.c ****     _max_value = max_value;
+  42:Libraries/stm32_encoder/encoder.c **** }
+  43:Libraries/stm32_encoder/encoder.c **** 
+  44:Libraries/stm32_encoder/encoder.c **** int32_t ENCODER_getValue(void) {
+  45:Libraries/stm32_encoder/encoder.c ****     return _encoder_value;
+  46:Libraries/stm32_encoder/encoder.c **** }
+  47:Libraries/stm32_encoder/encoder.c **** 
+  48:Libraries/stm32_encoder/encoder.c **** int32_t ENCODER_getIncrement(void) {
+  49:Libraries/stm32_encoder/encoder.c ****     int32_t temp = _encoder_delta;
+  50:Libraries/stm32_encoder/encoder.c ****     _encoder_delta = 0;
+  51:Libraries/stm32_encoder/encoder.c ****     return temp;
+  52:Libraries/stm32_encoder/encoder.c **** }
+  53:Libraries/stm32_encoder/encoder.c **** 
+  54:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMax(int32_t max) {
+  55:Libraries/stm32_encoder/encoder.c ****     _max_value = max;
+  56:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+  57:Libraries/stm32_encoder/encoder.c **** }
+  58:Libraries/stm32_encoder/encoder.c **** 
+  59:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMin(int32_t min) {
+  60:Libraries/stm32_encoder/encoder.c ****     _min_value = min;
+  61:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+  62:Libraries/stm32_encoder/encoder.c **** }
+  63:Libraries/stm32_encoder/encoder.c **** 
+  64:Libraries/stm32_encoder/encoder.c **** void ENCODER_setValue(int32_t val) {
+  65:Libraries/stm32_encoder/encoder.c ****     _encoder_value = val;
+  66:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+  67:Libraries/stm32_encoder/encoder.c **** }
+  68:Libraries/stm32_encoder/encoder.c **** 
+  69:Libraries/stm32_encoder/encoder.c **** // Interupt handler
+  70:Libraries/stm32_encoder/encoder.c **** void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  71:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_a = HAL_GPIO_ReadPin(ENCODER_A_GPIO_Port, ENCODER_A_Pin);
+  72:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_b = HAL_GPIO_ReadPin(ENCODER_B_GPIO_Port, ENCODER_B_Pin);
+  73:Libraries/stm32_encoder/encoder.c **** 
+  74:Libraries/stm32_encoder/encoder.c ****     // If interrupted on edge of channel A
+  75:Libraries/stm32_encoder/encoder.c ****     if (GPIO_Pin == ENCODER_A_Pin) {
+  76:Libraries/stm32_encoder/encoder.c ****         if (channel_a != channel_b) {
+  77:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+  78:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+  79:Libraries/stm32_encoder/encoder.c ****         } else {
+  80:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+  81:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+  82:Libraries/stm32_encoder/encoder.c ****         }
+  83:Libraries/stm32_encoder/encoder.c ****     } else { // If interrupted on edge of Pin B
+  84:Libraries/stm32_encoder/encoder.c ****         if (channel_a == channel_b) {
+  85:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+  86:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+  87:Libraries/stm32_encoder/encoder.c ****         } else {
+  88:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+  89:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+  90:Libraries/stm32_encoder/encoder.c ****         }
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 3
+
+
+  91:Libraries/stm32_encoder/encoder.c ****     }
+  92:Libraries/stm32_encoder/encoder.c **** 
+  93:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+  94:Libraries/stm32_encoder/encoder.c **** }
+  95:Libraries/stm32_encoder/encoder.c **** 
+  96:Libraries/stm32_encoder/encoder.c **** static void _ENCODER_clampValue(void) {
+  26              		.loc 1 96 39 view -0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  97:Libraries/stm32_encoder/encoder.c ****     if (_encoder_value < _min_value) {
+  31              		.loc 1 97 5 view .LVU1
+  32              		.loc 1 97 24 is_stmt 0 view .LVU2
+  33 0000 084B     		ldr	r3, .L4
+  34 0002 1A68     		ldr	r2, [r3]
+  35 0004 084B     		ldr	r3, .L4+4
+  36 0006 1B68     		ldr	r3, [r3]
+  37              		.loc 1 97 8 view .LVU3
+  38 0008 9A42     		cmp	r2, r3
+  39 000a 01DA     		bge	.L2
+  98:Libraries/stm32_encoder/encoder.c ****         _encoder_value = _min_value;
+  40              		.loc 1 98 9 is_stmt 1 view .LVU4
+  41              		.loc 1 98 24 is_stmt 0 view .LVU5
+  42 000c 054A     		ldr	r2, .L4
+  43 000e 1360     		str	r3, [r2]
+  44              	.L2:
+  99:Libraries/stm32_encoder/encoder.c ****     }
+ 100:Libraries/stm32_encoder/encoder.c ****     if (_encoder_value > _max_value) {
+  45              		.loc 1 100 5 is_stmt 1 view .LVU6
+  46              		.loc 1 100 24 is_stmt 0 view .LVU7
+  47 0010 044B     		ldr	r3, .L4
+  48 0012 1A68     		ldr	r2, [r3]
+  49 0014 054B     		ldr	r3, .L4+8
+  50 0016 1B68     		ldr	r3, [r3]
+  51              		.loc 1 100 8 view .LVU8
+  52 0018 9A42     		cmp	r2, r3
+  53 001a 01DD     		ble	.L1
+ 101:Libraries/stm32_encoder/encoder.c ****         _encoder_value = _max_value;
+  54              		.loc 1 101 9 is_stmt 1 view .LVU9
+  55              		.loc 1 101 24 is_stmt 0 view .LVU10
+  56 001c 014A     		ldr	r2, .L4
+  57 001e 1360     		str	r3, [r2]
+  58              	.L1:
+ 102:Libraries/stm32_encoder/encoder.c ****     }
+ 103:Libraries/stm32_encoder/encoder.c **** }...
+  59              		.loc 1 103 1 view .LVU11
+  60              		@ sp needed
+  61 0020 7047     		bx	lr
+  62              	.L5:
+  63 0022 C046     		.align	2
+  64              	.L4:
+  65 0024 00000000 		.word	_encoder_value
+  66 0028 00000000 		.word	_min_value
+  67 002c 00000000 		.word	_max_value
+  68              		.cfi_endproc
+  69              	.LFE47:
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 4
+
+
+  71              		.section	.text.ENCODER_init,"ax",%progbits
+  72              		.align	1
+  73              		.global	ENCODER_init
+  74              		.syntax unified
+  75              		.code	16
+  76              		.thumb_func
+  77              		.fpu softvfp
+  79              	ENCODER_init:
+  80              	.LVL0:
+  81              	.LFB40:
+  23:Libraries/stm32_encoder/encoder.c **** void ENCODER_init(int32_t min_value, int32_t max_value) {
+  82              		.loc 1 23 57 is_stmt 1 view -0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 24
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  23:Libraries/stm32_encoder/encoder.c **** void ENCODER_init(int32_t min_value, int32_t max_value) {
+  86              		.loc 1 23 57 is_stmt 0 view .LVU13
+  87 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  88              	.LCFI0:
+  89              		.cfi_def_cfa_offset 20
+  90              		.cfi_offset 4, -20
+  91              		.cfi_offset 5, -16
+  92              		.cfi_offset 6, -12
+  93              		.cfi_offset 7, -8
+  94              		.cfi_offset 14, -4
+  95 0002 87B0     		sub	sp, sp, #28
+  96              	.LCFI1:
+  97              		.cfi_def_cfa_offset 48
+  98 0004 0500     		movs	r5, r0
+  99 0006 0C00     		movs	r4, r1
+  24:Libraries/stm32_encoder/encoder.c ****     _encoder_value = 0;
+ 100              		.loc 1 24 5 is_stmt 1 view .LVU14
+  24:Libraries/stm32_encoder/encoder.c ****     _encoder_value = 0;
+ 101              		.loc 1 24 20 is_stmt 0 view .LVU15
+ 102 0008 134B     		ldr	r3, .L7
+ 103 000a 0022     		movs	r2, #0
+ 104 000c 1A60     		str	r2, [r3]
+  26:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_DeInit(GPIOC, ENCODER_A_Pin | ENCODER_B_Pin);
+ 105              		.loc 1 26 5 is_stmt 1 view .LVU16
+ 106 000e C027     		movs	r7, #192
+ 107 0010 3F02     		lsls	r7, r7, #8
+ 108 0012 124E     		ldr	r6, .L7+4
+ 109 0014 3900     		movs	r1, r7
+ 110              	.LVL1:
+  26:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_DeInit(GPIOC, ENCODER_A_Pin | ENCODER_B_Pin);
+ 111              		.loc 1 26 5 is_stmt 0 view .LVU17
+ 112 0016 3000     		movs	r0, r6
+ 113              	.LVL2:
+  26:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_DeInit(GPIOC, ENCODER_A_Pin | ENCODER_B_Pin);
+ 114              		.loc 1 26 5 view .LVU18
+ 115 0018 FFF7FEFF 		bl	HAL_GPIO_DeInit
+ 116              	.LVL3:
+  28:Libraries/stm32_encoder/encoder.c ****     GPIO_InitTypeDef GPIO_InitStruct = {0};
+ 117              		.loc 1 28 5 is_stmt 1 view .LVU19
+  28:Libraries/stm32_encoder/encoder.c ****     GPIO_InitTypeDef GPIO_InitStruct = {0};
+ 118              		.loc 1 28 22 is_stmt 0 view .LVU20
+ 119 001c 0822     		movs	r2, #8
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 5
+
+
+ 120 001e 0021     		movs	r1, #0
+ 121 0020 04A8     		add	r0, sp, #16
+ 122 0022 FFF7FEFF 		bl	memset
+ 123              	.LVL4:
+  30:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pin = ENCODER_A_Pin | ENCODER_B_Pin;
+ 124              		.loc 1 30 5 is_stmt 1 view .LVU21
+  30:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pin = ENCODER_A_Pin | ENCODER_B_Pin;
+ 125              		.loc 1 30 25 is_stmt 0 view .LVU22
+ 126 0026 0197     		str	r7, [sp, #4]
+  31:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+ 127              		.loc 1 31 5 is_stmt 1 view .LVU23
+  31:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+ 128              		.loc 1 31 26 is_stmt 0 view .LVU24
+ 129 0028 C423     		movs	r3, #196
+ 130 002a 9B03     		lsls	r3, r3, #14
+ 131 002c 0293     		str	r3, [sp, #8]
+  32:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 132              		.loc 1 32 5 is_stmt 1 view .LVU25
+  32:Libraries/stm32_encoder/encoder.c ****     GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 133              		.loc 1 32 26 is_stmt 0 view .LVU26
+ 134 002e 0123     		movs	r3, #1
+ 135 0030 0393     		str	r3, [sp, #12]
+  34:Libraries/stm32_encoder/encoder.c ****     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+ 136              		.loc 1 34 5 is_stmt 1 view .LVU27
+ 137 0032 01A9     		add	r1, sp, #4
+ 138 0034 3000     		movs	r0, r6
+ 139 0036 FFF7FEFF 		bl	HAL_GPIO_Init
+ 140              	.LVL5:
+  37:Libraries/stm32_encoder/encoder.c ****     HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+ 141              		.loc 1 37 5 view .LVU28
+ 142 003a 0022     		movs	r2, #0
+ 143 003c 0021     		movs	r1, #0
+ 144 003e 0720     		movs	r0, #7
+ 145 0040 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 146              	.LVL6:
+  38:Libraries/stm32_encoder/encoder.c ****     HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+ 147              		.loc 1 38 5 view .LVU29
+ 148 0044 0720     		movs	r0, #7
+ 149 0046 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 150              	.LVL7:
+  40:Libraries/stm32_encoder/encoder.c ****     _min_value = min_value;
+ 151              		.loc 1 40 5 view .LVU30
+  40:Libraries/stm32_encoder/encoder.c ****     _min_value = min_value;
+ 152              		.loc 1 40 16 is_stmt 0 view .LVU31
+ 153 004a 054B     		ldr	r3, .L7+8
+ 154 004c 1D60     		str	r5, [r3]
+  41:Libraries/stm32_encoder/encoder.c ****     _max_value = max_value;
+ 155              		.loc 1 41 5 is_stmt 1 view .LVU32
+  41:Libraries/stm32_encoder/encoder.c ****     _max_value = max_value;
+ 156              		.loc 1 41 16 is_stmt 0 view .LVU33
+ 157 004e 054B     		ldr	r3, .L7+12
+ 158 0050 1C60     		str	r4, [r3]
+  42:Libraries/stm32_encoder/encoder.c **** }
+ 159              		.loc 1 42 1 view .LVU34
+ 160 0052 07B0     		add	sp, sp, #28
+ 161              		@ sp needed
+ 162              	.LVL8:
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 6
+
+
+ 163              	.LVL9:
+  42:Libraries/stm32_encoder/encoder.c **** }
+ 164              		.loc 1 42 1 view .LVU35
+ 165 0054 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 166              	.L8:
+ 167 0056 C046     		.align	2
+ 168              	.L7:
+ 169 0058 00000000 		.word	_encoder_value
+ 170 005c 00080050 		.word	1342179328
+ 171 0060 00000000 		.word	_min_value
+ 172 0064 00000000 		.word	_max_value
+ 173              		.cfi_endproc
+ 174              	.LFE40:
+ 176              		.section	.text.ENCODER_getValue,"ax",%progbits
+ 177              		.align	1
+ 178              		.global	ENCODER_getValue
+ 179              		.syntax unified
+ 180              		.code	16
+ 181              		.thumb_func
+ 182              		.fpu softvfp
+ 184              	ENCODER_getValue:
+ 185              	.LFB41:
+  44:Libraries/stm32_encoder/encoder.c **** int32_t ENCODER_getValue(void) {
+ 186              		.loc 1 44 32 is_stmt 1 view -0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 0
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              		@ link register save eliminated.
+  45:Libraries/stm32_encoder/encoder.c ****     return _encoder_value;
+ 191              		.loc 1 45 5 view .LVU37
+  45:Libraries/stm32_encoder/encoder.c ****     return _encoder_value;
+ 192              		.loc 1 45 12 is_stmt 0 view .LVU38
+ 193 0000 014B     		ldr	r3, .L10
+ 194 0002 1868     		ldr	r0, [r3]
+  46:Libraries/stm32_encoder/encoder.c **** }
+ 195              		.loc 1 46 1 view .LVU39
+ 196              		@ sp needed
+ 197 0004 7047     		bx	lr
+ 198              	.L11:
+ 199 0006 C046     		.align	2
+ 200              	.L10:
+ 201 0008 00000000 		.word	_encoder_value
+ 202              		.cfi_endproc
+ 203              	.LFE41:
+ 205              		.section	.text.ENCODER_getIncrement,"ax",%progbits
+ 206              		.align	1
+ 207              		.global	ENCODER_getIncrement
+ 208              		.syntax unified
+ 209              		.code	16
+ 210              		.thumb_func
+ 211              		.fpu softvfp
+ 213              	ENCODER_getIncrement:
+ 214              	.LFB42:
+  48:Libraries/stm32_encoder/encoder.c **** int32_t ENCODER_getIncrement(void) {
+ 215              		.loc 1 48 36 is_stmt 1 view -0
+ 216              		.cfi_startproc
+ 217              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 7
+
+
+ 218              		@ frame_needed = 0, uses_anonymous_args = 0
+ 219              		@ link register save eliminated.
+  49:Libraries/stm32_encoder/encoder.c ****     int32_t temp = _encoder_delta;
+ 220              		.loc 1 49 5 view .LVU41
+  49:Libraries/stm32_encoder/encoder.c ****     int32_t temp = _encoder_delta;
+ 221              		.loc 1 49 13 is_stmt 0 view .LVU42
+ 222 0000 024B     		ldr	r3, .L13
+ 223 0002 1868     		ldr	r0, [r3]
+ 224              	.LVL10:
+  50:Libraries/stm32_encoder/encoder.c ****     _encoder_delta = 0;
+ 225              		.loc 1 50 5 is_stmt 1 view .LVU43
+  50:Libraries/stm32_encoder/encoder.c ****     _encoder_delta = 0;
+ 226              		.loc 1 50 20 is_stmt 0 view .LVU44
+ 227 0004 0022     		movs	r2, #0
+ 228 0006 1A60     		str	r2, [r3]
+  51:Libraries/stm32_encoder/encoder.c ****     return temp;
+ 229              		.loc 1 51 5 is_stmt 1 view .LVU45
+  52:Libraries/stm32_encoder/encoder.c **** }
+ 230              		.loc 1 52 1 is_stmt 0 view .LVU46
+ 231              		@ sp needed
+ 232 0008 7047     		bx	lr
+ 233              	.L14:
+ 234 000a C046     		.align	2
+ 235              	.L13:
+ 236 000c 00000000 		.word	_encoder_delta
+ 237              		.cfi_endproc
+ 238              	.LFE42:
+ 240              		.section	.text.ENCODER_setMax,"ax",%progbits
+ 241              		.align	1
+ 242              		.global	ENCODER_setMax
+ 243              		.syntax unified
+ 244              		.code	16
+ 245              		.thumb_func
+ 246              		.fpu softvfp
+ 248              	ENCODER_setMax:
+ 249              	.LVL11:
+ 250              	.LFB43:
+  54:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMax(int32_t max) {
+ 251              		.loc 1 54 34 is_stmt 1 view -0
+ 252              		.cfi_startproc
+ 253              		@ args = 0, pretend = 0, frame = 0
+ 254              		@ frame_needed = 0, uses_anonymous_args = 0
+  54:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMax(int32_t max) {
+ 255              		.loc 1 54 34 is_stmt 0 view .LVU48
+ 256 0000 10B5     		push	{r4, lr}
+ 257              	.LCFI2:
+ 258              		.cfi_def_cfa_offset 8
+ 259              		.cfi_offset 4, -8
+ 260              		.cfi_offset 14, -4
+  55:Libraries/stm32_encoder/encoder.c ****     _max_value = max;
+ 261              		.loc 1 55 5 is_stmt 1 view .LVU49
+  55:Libraries/stm32_encoder/encoder.c ****     _max_value = max;
+ 262              		.loc 1 55 16 is_stmt 0 view .LVU50
+ 263 0002 024B     		ldr	r3, .L16
+ 264 0004 1860     		str	r0, [r3]
+  56:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+ 265              		.loc 1 56 5 is_stmt 1 view .LVU51
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 8
+
+
+ 266 0006 FFF7FEFF 		bl	_ENCODER_clampValue
+ 267              	.LVL12:
+  57:Libraries/stm32_encoder/encoder.c **** }
+ 268              		.loc 1 57 1 is_stmt 0 view .LVU52
+ 269              		@ sp needed
+ 270 000a 10BD     		pop	{r4, pc}
+ 271              	.L17:
+ 272              		.align	2
+ 273              	.L16:
+ 274 000c 00000000 		.word	_max_value
+ 275              		.cfi_endproc
+ 276              	.LFE43:
+ 278              		.section	.text.ENCODER_setMin,"ax",%progbits
+ 279              		.align	1
+ 280              		.global	ENCODER_setMin
+ 281              		.syntax unified
+ 282              		.code	16
+ 283              		.thumb_func
+ 284              		.fpu softvfp
+ 286              	ENCODER_setMin:
+ 287              	.LVL13:
+ 288              	.LFB44:
+  59:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMin(int32_t min) {
+ 289              		.loc 1 59 34 is_stmt 1 view -0
+ 290              		.cfi_startproc
+ 291              		@ args = 0, pretend = 0, frame = 0
+ 292              		@ frame_needed = 0, uses_anonymous_args = 0
+  59:Libraries/stm32_encoder/encoder.c **** void ENCODER_setMin(int32_t min) {
+ 293              		.loc 1 59 34 is_stmt 0 view .LVU54
+ 294 0000 10B5     		push	{r4, lr}
+ 295              	.LCFI3:
+ 296              		.cfi_def_cfa_offset 8
+ 297              		.cfi_offset 4, -8
+ 298              		.cfi_offset 14, -4
+  60:Libraries/stm32_encoder/encoder.c ****     _min_value = min;
+ 299              		.loc 1 60 5 is_stmt 1 view .LVU55
+  60:Libraries/stm32_encoder/encoder.c ****     _min_value = min;
+ 300              		.loc 1 60 16 is_stmt 0 view .LVU56
+ 301 0002 024B     		ldr	r3, .L19
+ 302 0004 1860     		str	r0, [r3]
+  61:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+ 303              		.loc 1 61 5 is_stmt 1 view .LVU57
+ 304 0006 FFF7FEFF 		bl	_ENCODER_clampValue
+ 305              	.LVL14:
+  62:Libraries/stm32_encoder/encoder.c **** }
+ 306              		.loc 1 62 1 is_stmt 0 view .LVU58
+ 307              		@ sp needed
+ 308 000a 10BD     		pop	{r4, pc}
+ 309              	.L20:
+ 310              		.align	2
+ 311              	.L19:
+ 312 000c 00000000 		.word	_min_value
+ 313              		.cfi_endproc
+ 314              	.LFE44:
+ 316              		.section	.text.ENCODER_setValue,"ax",%progbits
+ 317              		.align	1
+ 318              		.global	ENCODER_setValue
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 9
+
+
+ 319              		.syntax unified
+ 320              		.code	16
+ 321              		.thumb_func
+ 322              		.fpu softvfp
+ 324              	ENCODER_setValue:
+ 325              	.LVL15:
+ 326              	.LFB45:
+  64:Libraries/stm32_encoder/encoder.c **** void ENCODER_setValue(int32_t val) {
+ 327              		.loc 1 64 36 is_stmt 1 view -0
+ 328              		.cfi_startproc
+ 329              		@ args = 0, pretend = 0, frame = 0
+ 330              		@ frame_needed = 0, uses_anonymous_args = 0
+  64:Libraries/stm32_encoder/encoder.c **** void ENCODER_setValue(int32_t val) {
+ 331              		.loc 1 64 36 is_stmt 0 view .LVU60
+ 332 0000 10B5     		push	{r4, lr}
+ 333              	.LCFI4:
+ 334              		.cfi_def_cfa_offset 8
+ 335              		.cfi_offset 4, -8
+ 336              		.cfi_offset 14, -4
+  65:Libraries/stm32_encoder/encoder.c ****     _encoder_value = val;
+ 337              		.loc 1 65 5 is_stmt 1 view .LVU61
+  65:Libraries/stm32_encoder/encoder.c ****     _encoder_value = val;
+ 338              		.loc 1 65 20 is_stmt 0 view .LVU62
+ 339 0002 024B     		ldr	r3, .L22
+ 340 0004 1860     		str	r0, [r3]
+  66:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+ 341              		.loc 1 66 5 is_stmt 1 view .LVU63
+ 342 0006 FFF7FEFF 		bl	_ENCODER_clampValue
+ 343              	.LVL16:
+  67:Libraries/stm32_encoder/encoder.c **** }
+ 344              		.loc 1 67 1 is_stmt 0 view .LVU64
+ 345              		@ sp needed
+ 346 000a 10BD     		pop	{r4, pc}
+ 347              	.L23:
+ 348              		.align	2
+ 349              	.L22:
+ 350 000c 00000000 		.word	_encoder_value
+ 351              		.cfi_endproc
+ 352              	.LFE45:
+ 354              		.section	.text.HAL_GPIO_EXTI_Callback,"ax",%progbits
+ 355              		.align	1
+ 356              		.global	HAL_GPIO_EXTI_Callback
+ 357              		.syntax unified
+ 358              		.code	16
+ 359              		.thumb_func
+ 360              		.fpu softvfp
+ 362              	HAL_GPIO_EXTI_Callback:
+ 363              	.LVL17:
+ 364              	.LFB46:
+  70:Libraries/stm32_encoder/encoder.c **** void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+ 365              		.loc 1 70 48 is_stmt 1 view -0
+ 366              		.cfi_startproc
+ 367              		@ args = 0, pretend = 0, frame = 0
+ 368              		@ frame_needed = 0, uses_anonymous_args = 0
+  70:Libraries/stm32_encoder/encoder.c **** void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+ 369              		.loc 1 70 48 is_stmt 0 view .LVU66
+ 370 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 10
+
+
+ 371              	.LCFI5:
+ 372              		.cfi_def_cfa_offset 24
+ 373              		.cfi_offset 3, -24
+ 374              		.cfi_offset 4, -20
+ 375              		.cfi_offset 5, -16
+ 376              		.cfi_offset 6, -12
+ 377              		.cfi_offset 7, -8
+ 378              		.cfi_offset 14, -4
+ 379 0002 0500     		movs	r5, r0
+  71:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_a = HAL_GPIO_ReadPin(ENCODER_A_GPIO_Port, ENCODER_A_Pin);
+ 380              		.loc 1 71 5 is_stmt 1 view .LVU67
+  71:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_a = HAL_GPIO_ReadPin(ENCODER_A_GPIO_Port, ENCODER_A_Pin);
+ 381              		.loc 1 71 26 is_stmt 0 view .LVU68
+ 382 0004 8026     		movs	r6, #128
+ 383 0006 F601     		lsls	r6, r6, #7
+ 384 0008 1B4F     		ldr	r7, .L31
+ 385 000a 3100     		movs	r1, r6
+ 386 000c 3800     		movs	r0, r7
+ 387              	.LVL18:
+  71:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_a = HAL_GPIO_ReadPin(ENCODER_A_GPIO_Port, ENCODER_A_Pin);
+ 388              		.loc 1 71 26 view .LVU69
+ 389 000e FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 390              	.LVL19:
+  71:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_a = HAL_GPIO_ReadPin(ENCODER_A_GPIO_Port, ENCODER_A_Pin);
+ 391              		.loc 1 71 14 view .LVU70
+ 392 0012 0400     		movs	r4, r0
+ 393              	.LVL20:
+  72:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_b = HAL_GPIO_ReadPin(ENCODER_B_GPIO_Port, ENCODER_B_Pin);
+ 394              		.loc 1 72 5 is_stmt 1 view .LVU71
+  72:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_b = HAL_GPIO_ReadPin(ENCODER_B_GPIO_Port, ENCODER_B_Pin);
+ 395              		.loc 1 72 26 is_stmt 0 view .LVU72
+ 396 0014 8021     		movs	r1, #128
+ 397 0016 0902     		lsls	r1, r1, #8
+ 398 0018 3800     		movs	r0, r7
+ 399              	.LVL21:
+  72:Libraries/stm32_encoder/encoder.c ****     uint32_t channel_b = HAL_GPIO_ReadPin(ENCODER_B_GPIO_Port, ENCODER_B_Pin);
+ 400              		.loc 1 72 26 view .LVU73
+ 401 001a FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 402              	.LVL22:
+  75:Libraries/stm32_encoder/encoder.c ****     if (GPIO_Pin == ENCODER_A_Pin) {
+ 403              		.loc 1 75 5 is_stmt 1 view .LVU74
+  75:Libraries/stm32_encoder/encoder.c ****     if (GPIO_Pin == ENCODER_A_Pin) {
+ 404              		.loc 1 75 8 is_stmt 0 view .LVU75
+ 405 001e B542     		cmp	r5, r6
+ 406 0020 0CD0     		beq	.L29
+  84:Libraries/stm32_encoder/encoder.c ****         if (channel_a == channel_b) {
+ 407              		.loc 1 84 9 is_stmt 1 view .LVU76
+  84:Libraries/stm32_encoder/encoder.c ****         if (channel_a == channel_b) {
+ 408              		.loc 1 84 12 is_stmt 0 view .LVU77
+ 409 0022 8442     		cmp	r4, r0
+ 410 0024 1ED0     		beq	.L30
+  88:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+ 411              		.loc 1 88 13 is_stmt 1 view .LVU78
+  88:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+ 412              		.loc 1 88 28 is_stmt 0 view .LVU79
+ 413 0026 154A     		ldr	r2, .L31+4
+ 414 0028 1368     		ldr	r3, [r2]
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 11
+
+
+ 415 002a 013B     		subs	r3, r3, #1
+ 416 002c 1360     		str	r3, [r2]
+  89:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+ 417              		.loc 1 89 13 is_stmt 1 view .LVU80
+  89:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+ 418              		.loc 1 89 28 is_stmt 0 view .LVU81
+ 419 002e 144A     		ldr	r2, .L31+8
+ 420 0030 1368     		ldr	r3, [r2]
+ 421 0032 013B     		subs	r3, r3, #1
+ 422 0034 1360     		str	r3, [r2]
+ 423              	.L27:
+  93:Libraries/stm32_encoder/encoder.c ****     _ENCODER_clampValue();
+ 424              		.loc 1 93 5 is_stmt 1 view .LVU82
+ 425 0036 FFF7FEFF 		bl	_ENCODER_clampValue
+ 426              	.LVL23:
+  94:Libraries/stm32_encoder/encoder.c **** }
+ 427              		.loc 1 94 1 is_stmt 0 view .LVU83
+ 428              		@ sp needed
+ 429              	.LVL24:
+  94:Libraries/stm32_encoder/encoder.c **** }
+ 430              		.loc 1 94 1 view .LVU84
+ 431 003a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 432              	.LVL25:
+ 433              	.L29:
+  76:Libraries/stm32_encoder/encoder.c ****         if (channel_a != channel_b) {
+ 434              		.loc 1 76 9 is_stmt 1 view .LVU85
+  76:Libraries/stm32_encoder/encoder.c ****         if (channel_a != channel_b) {
+ 435              		.loc 1 76 12 is_stmt 0 view .LVU86
+ 436 003c 8442     		cmp	r4, r0
+ 437 003e 08D0     		beq	.L26
+  77:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+ 438              		.loc 1 77 13 is_stmt 1 view .LVU87
+  77:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+ 439              		.loc 1 77 28 is_stmt 0 view .LVU88
+ 440 0040 0E4A     		ldr	r2, .L31+4
+ 441 0042 1368     		ldr	r3, [r2]
+ 442 0044 0133     		adds	r3, r3, #1
+ 443 0046 1360     		str	r3, [r2]
+  78:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+ 444              		.loc 1 78 13 is_stmt 1 view .LVU89
+  78:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+ 445              		.loc 1 78 28 is_stmt 0 view .LVU90
+ 446 0048 0D4A     		ldr	r2, .L31+8
+ 447 004a 1368     		ldr	r3, [r2]
+ 448 004c 0133     		adds	r3, r3, #1
+ 449 004e 1360     		str	r3, [r2]
+ 450 0050 F1E7     		b	.L27
+ 451              	.L26:
+  80:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+ 452              		.loc 1 80 13 is_stmt 1 view .LVU91
+  80:Libraries/stm32_encoder/encoder.c ****             _encoder_value -= DELTA;
+ 453              		.loc 1 80 28 is_stmt 0 view .LVU92
+ 454 0052 0A4A     		ldr	r2, .L31+4
+ 455 0054 1368     		ldr	r3, [r2]
+ 456 0056 013B     		subs	r3, r3, #1
+ 457 0058 1360     		str	r3, [r2]
+  81:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 12
+
+
+ 458              		.loc 1 81 13 is_stmt 1 view .LVU93
+  81:Libraries/stm32_encoder/encoder.c ****             _encoder_delta -= DELTA;
+ 459              		.loc 1 81 28 is_stmt 0 view .LVU94
+ 460 005a 094A     		ldr	r2, .L31+8
+ 461 005c 1368     		ldr	r3, [r2]
+ 462 005e 013B     		subs	r3, r3, #1
+ 463 0060 1360     		str	r3, [r2]
+ 464 0062 E8E7     		b	.L27
+ 465              	.L30:
+  85:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+ 466              		.loc 1 85 13 is_stmt 1 view .LVU95
+  85:Libraries/stm32_encoder/encoder.c ****             _encoder_value += DELTA;
+ 467              		.loc 1 85 28 is_stmt 0 view .LVU96
+ 468 0064 054A     		ldr	r2, .L31+4
+ 469 0066 1368     		ldr	r3, [r2]
+ 470 0068 0133     		adds	r3, r3, #1
+ 471 006a 1360     		str	r3, [r2]
+  86:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+ 472              		.loc 1 86 13 is_stmt 1 view .LVU97
+  86:Libraries/stm32_encoder/encoder.c ****             _encoder_delta += DELTA;
+ 473              		.loc 1 86 28 is_stmt 0 view .LVU98
+ 474 006c 044A     		ldr	r2, .L31+8
+ 475 006e 1368     		ldr	r3, [r2]
+ 476 0070 0133     		adds	r3, r3, #1
+ 477 0072 1360     		str	r3, [r2]
+ 478 0074 DFE7     		b	.L27
+ 479              	.L32:
+ 480 0076 C046     		.align	2
+ 481              	.L31:
+ 482 0078 00080050 		.word	1342179328
+ 483 007c 00000000 		.word	_encoder_value
+ 484 0080 00000000 		.word	_encoder_delta
+ 485              		.cfi_endproc
+ 486              	.LFE46:
+ 488              		.comm	_max_value,4,4
+ 489              		.comm	_min_value,4,4
+ 490              		.comm	_encoder_delta,4,4
+ 491              		.comm	_encoder_value,4,4
+ 492              		.text
+ 493              	.Letext0:
+ 494              		.file 2 "/Applications/ARM/arm-none-eabi/include/machine/_default_types.h"
+ 495              		.file 3 "/Applications/ARM/arm-none-eabi/include/sys/_stdint.h"
+ 496              		.file 4 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/system_stm32l0xx.h"
+ 497              		.file 5 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/stm32l041xx.h"
+ 498              		.file 6 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_gpio.h"
+ 499              		.file 7 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal.h"
+ 500              		.file 8 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_cortex.h"
+ 501              		.file 9 "<built-in>"
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s 			page 13
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 encoder.c
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:16     .text._ENCODER_clampValue:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:23     .text._ENCODER_clampValue:0000000000000000 _ENCODER_clampValue
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:65     .text._ENCODER_clampValue:0000000000000024 $d
+                            *COM*:0000000000000004 _encoder_value
+                            *COM*:0000000000000004 _min_value
+                            *COM*:0000000000000004 _max_value
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:72     .text.ENCODER_init:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:79     .text.ENCODER_init:0000000000000000 ENCODER_init
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:169    .text.ENCODER_init:0000000000000058 $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:177    .text.ENCODER_getValue:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:184    .text.ENCODER_getValue:0000000000000000 ENCODER_getValue
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:201    .text.ENCODER_getValue:0000000000000008 $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:206    .text.ENCODER_getIncrement:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:213    .text.ENCODER_getIncrement:0000000000000000 ENCODER_getIncrement
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:236    .text.ENCODER_getIncrement:000000000000000c $d
+                            *COM*:0000000000000004 _encoder_delta
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:241    .text.ENCODER_setMax:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:248    .text.ENCODER_setMax:0000000000000000 ENCODER_setMax
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:274    .text.ENCODER_setMax:000000000000000c $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:279    .text.ENCODER_setMin:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:286    .text.ENCODER_setMin:0000000000000000 ENCODER_setMin
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:312    .text.ENCODER_setMin:000000000000000c $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:317    .text.ENCODER_setValue:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:324    .text.ENCODER_setValue:0000000000000000 ENCODER_setValue
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:350    .text.ENCODER_setValue:000000000000000c $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:355    .text.HAL_GPIO_EXTI_Callback:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:362    .text.HAL_GPIO_EXTI_Callback:0000000000000000 HAL_GPIO_EXTI_Callback
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccujE1sK.s:482    .text.HAL_GPIO_EXTI_Callback:0000000000000078 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_DeInit
+memset
+HAL_GPIO_Init
+HAL_NVIC_SetPriority
+HAL_NVIC_EnableIRQ
+HAL_GPIO_ReadPin

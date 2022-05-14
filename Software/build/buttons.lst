@@ -1,0 +1,512 @@
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 1
+
+
+   1              		.cpu cortex-m0plus
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 0
+  10              		.eabi_attribute 18, 4
+  11              		.file	"buttons.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.BUTTONS_init,"ax",%progbits
+  16              		.align	1
+  17              		.global	BUTTONS_init
+  18              		.arch armv6s-m
+  19              		.syntax unified
+  20              		.code	16
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	BUTTONS_init:
+  25              	.LFB40:
+  26              		.file 1 "Core/Src/buttons.c"
+   1:Core/Src/buttons.c **** /**
+   2:Core/Src/buttons.c ****  * @file buttons.c
+   3:Core/Src/buttons.c ****  * @author your name (you@domain.com)
+   4:Core/Src/buttons.c ****  * @brief Configures and updates button states. Current buttons are Output Toggle, 
+   5:Core/Src/buttons.c ****  *        Slew Rate, and Range Select
+   6:Core/Src/buttons.c ****  * @version 0.1
+   7:Core/Src/buttons.c ****  * @date 2022-05-07
+   8:Core/Src/buttons.c ****  * 
+   9:Core/Src/buttons.c ****  * @copyright Copyright (c) 2022
+  10:Core/Src/buttons.c ****  * 
+  11:Core/Src/buttons.c ****  */
+  12:Core/Src/buttons.c **** 
+  13:Core/Src/buttons.c **** #include "buttons.h"
+  14:Core/Src/buttons.c **** #include "string.h"
+  15:Core/Src/buttons.c **** // TODO: Remove when done
+  16:Core/Src/buttons.c **** // #include <stdio.h>
+  17:Core/Src/buttons.c **** // #include <usart.h> 
+  18:Core/Src/buttons.c **** // char out_buff[100] = {0};
+  19:Core/Src/buttons.c **** 
+  20:Core/Src/buttons.c **** const uint32_t ADC_BUTTON_THRESHOLDS[7] = {
+  21:Core/Src/buttons.c ****     139, 360, 516, 725, 852, 1001, 1109};
+  22:Core/Src/buttons.c **** 
+  23:Core/Src/buttons.c **** const uint8_t ADC_VAL_BUTTON_MAP[7] = {
+  24:Core/Src/buttons.c ****     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+  25:Core/Src/buttons.c **** 
+  26:Core/Src/buttons.c **** ButtonStates_TypeDef buttons;
+  27:Core/Src/buttons.c **** ButtonStates_TypeDef buttons_prev;
+  28:Core/Src/buttons.c **** ADC_HandleTypeDef* adc;
+  29:Core/Src/buttons.c **** 
+  30:Core/Src/buttons.c **** ButtonStates_TypeDef* BUTTONS_init(void){
+  27              		.loc 1 30 41 view -0
+  28              		.cfi_startproc
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 2
+
+
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  31:Core/Src/buttons.c ****     // Get ADC instance
+  32:Core/Src/buttons.c ****     adc = HAL_ADC_getInstance();
+  36              		.loc 1 32 5 view .LVU1
+  37              		.loc 1 32 11 is_stmt 0 view .LVU2
+  38 0002 FFF7FEFF 		bl	HAL_ADC_getInstance
+  39              	.LVL0:
+  40              		.loc 1 32 9 view .LVU3
+  41 0006 074B     		ldr	r3, .L2
+  42 0008 1860     		str	r0, [r3]
+  33:Core/Src/buttons.c **** 
+  34:Core/Src/buttons.c ****     // Set initial values
+  35:Core/Src/buttons.c ****     buttons = (const ButtonStates_TypeDef) {0};
+  43              		.loc 1 35 5 is_stmt 1 view .LVU4
+  44              		.loc 1 35 13 is_stmt 0 view .LVU5
+  45 000a 074C     		ldr	r4, .L2+4
+  46 000c 0C22     		movs	r2, #12
+  47 000e 0021     		movs	r1, #0
+  48 0010 2000     		movs	r0, r4
+  49 0012 FFF7FEFF 		bl	memset
+  50              	.LVL1:
+  36:Core/Src/buttons.c ****     buttons_prev = (const ButtonStates_TypeDef) {0};;
+  51              		.loc 1 36 5 is_stmt 1 view .LVU6
+  52              		.loc 1 36 18 is_stmt 0 view .LVU7
+  53 0016 0C22     		movs	r2, #12
+  54 0018 0021     		movs	r1, #0
+  55 001a 0448     		ldr	r0, .L2+8
+  56 001c FFF7FEFF 		bl	memset
+  57              	.LVL2:
+  58              		.loc 1 36 53 is_stmt 1 view .LVU8
+  37:Core/Src/buttons.c **** 
+  38:Core/Src/buttons.c ****     // Return
+  39:Core/Src/buttons.c ****     return &buttons;
+  59              		.loc 1 39 5 view .LVU9
+  40:Core/Src/buttons.c **** }
+  60              		.loc 1 40 1 is_stmt 0 view .LVU10
+  61 0020 2000     		movs	r0, r4
+  62              		@ sp needed
+  63 0022 10BD     		pop	{r4, pc}
+  64              	.L3:
+  65              		.align	2
+  66              	.L2:
+  67 0024 00000000 		.word	adc
+  68 0028 00000000 		.word	buttons
+  69 002c 00000000 		.word	buttons_prev
+  70              		.cfi_endproc
+  71              	.LFE40:
+  73              		.section	.text.BUTTONS_update,"ax",%progbits
+  74              		.align	1
+  75              		.global	BUTTONS_update
+  76              		.syntax unified
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 3
+
+
+  77              		.code	16
+  78              		.thumb_func
+  79              		.fpu softvfp
+  81              	BUTTONS_update:
+  82              	.LFB41:
+  41:Core/Src/buttons.c **** 
+  42:Core/Src/buttons.c **** void BUTTONS_update(void) {
+  83              		.loc 1 42 27 is_stmt 1 view -0
+  84              		.cfi_startproc
+  85              		@ args = 0, pretend = 0, frame = 0
+  86              		@ frame_needed = 0, uses_anonymous_args = 0
+  87 0000 10B5     		push	{r4, lr}
+  88              	.LCFI1:
+  89              		.cfi_def_cfa_offset 8
+  90              		.cfi_offset 4, -8
+  91              		.cfi_offset 14, -4
+  43:Core/Src/buttons.c ****     uint16_t adc_val;
+  92              		.loc 1 43 5 view .LVU12
+  44:Core/Src/buttons.c ****     uint8_t button_state = 0;
+  93              		.loc 1 44 5 view .LVU13
+  94              	.LVL3:
+  45:Core/Src/buttons.c **** 
+  46:Core/Src/buttons.c ****     adc_val = ADC_readChannel(ADC_BTN_CHANNEL_IDX);
+  95              		.loc 1 46 5 view .LVU14
+  96              		.loc 1 46 15 is_stmt 0 view .LVU15
+  97 0002 0220     		movs	r0, #2
+  98 0004 FFF7FEFF 		bl	ADC_readChannel
+  99              	.LVL4:
+  47:Core/Src/buttons.c **** 
+  48:Core/Src/buttons.c ****     // Loop through the predefined thresholds until we find the one we're 
+  49:Core/Src/buttons.c ****     // bigger than.
+  50:Core/Src/buttons.c ****     for (int i = ARRAYSIZE(ADC_BUTTON_THRESHOLDS); i >= 0; i--) 
+ 100              		.loc 1 50 5 is_stmt 1 view .LVU16
+ 101              	.LBB2:
+ 102              		.loc 1 50 10 view .LVU17
+ 103              		.loc 1 50 14 is_stmt 0 view .LVU18
+ 104 0008 0723     		movs	r3, #7
+ 105              		.loc 1 50 5 view .LVU19
+ 106 000a 00E0     		b	.L5
+ 107              	.LVL5:
+ 108              	.L6:
+ 109              		.loc 1 50 60 is_stmt 1 discriminator 2 view .LVU20
+ 110              		.loc 1 50 61 is_stmt 0 discriminator 2 view .LVU21
+ 111 000c 013B     		subs	r3, r3, #1
+ 112              	.LVL6:
+ 113              	.L5:
+ 114              		.loc 1 50 52 is_stmt 1 discriminator 1 view .LVU22
+ 115              		.loc 1 50 5 is_stmt 0 discriminator 1 view .LVU23
+ 116 000e 002B     		cmp	r3, #0
+ 117 0010 07DB     		blt	.L27
+  51:Core/Src/buttons.c ****     {
+  52:Core/Src/buttons.c ****         if (adc_val > ADC_BUTTON_THRESHOLDS[i]) {
+ 118              		.loc 1 52 9 is_stmt 1 view .LVU24
+ 119              		.loc 1 52 44 is_stmt 0 view .LVU25
+ 120 0012 9A00     		lsls	r2, r3, #2
+ 121 0014 3649     		ldr	r1, .L28
+ 122 0016 5258     		ldr	r2, [r2, r1]
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 4
+
+
+ 123              		.loc 1 52 12 view .LVU26
+ 124 0018 9042     		cmp	r0, r2
+ 125 001a F7D9     		bls	.L6
+  53:Core/Src/buttons.c ****             button_state = ADC_VAL_BUTTON_MAP[i];
+ 126              		.loc 1 53 13 is_stmt 1 view .LVU27
+ 127              		.loc 1 53 26 is_stmt 0 view .LVU28
+ 128 001c 354A     		ldr	r2, .L28+4
+ 129 001e D05C     		ldrb	r0, [r2, r3]
+ 130              	.LVL7:
+  54:Core/Src/buttons.c ****             break;
+ 131              		.loc 1 54 13 is_stmt 1 view .LVU29
+ 132 0020 00E0     		b	.L7
+ 133              	.LVL8:
+ 134              	.L27:
+ 135              		.loc 1 54 13 is_stmt 0 view .LVU30
+ 136              	.LBE2:
+  44:Core/Src/buttons.c **** 
+ 137              		.loc 1 44 13 view .LVU31
+ 138 0022 0020     		movs	r0, #0
+ 139              	.LVL9:
+ 140              	.L7:
+  55:Core/Src/buttons.c ****         }
+  56:Core/Src/buttons.c ****     }
+  57:Core/Src/buttons.c ****     // sprintf(out_buff, "ADC Value: %lu\n\r", adc_val);
+  58:Core/Src/buttons.c ****     // UART_print(out_buff);
+  59:Core/Src/buttons.c **** 
+  60:Core/Src/buttons.c ****     buttons.toggleActive   = button_state & TOGGLE_BUTTON_MASK;
+ 141              		.loc 1 60 5 is_stmt 1 view .LVU32
+ 142              		.loc 1 60 43 is_stmt 0 view .LVU33
+ 143 0024 0121     		movs	r1, #1
+ 144 0026 0140     		ands	r1, r0
+ 145              		.loc 1 60 28 view .LVU34
+ 146 0028 334A     		ldr	r2, .L28+8
+ 147 002a 1170     		strb	r1, [r2]
+  61:Core/Src/buttons.c ****     buttons.toggleChanged  = buttons.toggleActive != buttons_prev.toggleActive;
+ 148              		.loc 1 61 5 is_stmt 1 view .LVU35
+ 149              		.loc 1 61 66 is_stmt 0 view .LVU36
+ 150 002c 334B     		ldr	r3, .L28+12
+ 151              	.LVL10:
+ 152              		.loc 1 61 66 view .LVU37
+ 153 002e 1B78     		ldrb	r3, [r3]
+ 154              		.loc 1 61 51 view .LVU38
+ 155 0030 CB1A     		subs	r3, r1, r3
+ 156 0032 5C1E     		subs	r4, r3, #1
+ 157 0034 A341     		sbcs	r3, r3, r4
+ 158 0036 DBB2     		uxtb	r3, r3
+ 159              		.loc 1 61 28 view .LVU39
+ 160 0038 5370     		strb	r3, [r2, #1]
+  62:Core/Src/buttons.c ****     buttons.toggleReleased = buttons.toggleChanged && !buttons.toggleActive;
+ 161              		.loc 1 62 5 is_stmt 1 view .LVU40
+ 162              		.loc 1 62 52 is_stmt 0 view .LVU41
+ 163 003a 002B     		cmp	r3, #0
+ 164 003c 03D0     		beq	.L15
+ 165              		.loc 1 62 52 discriminator 1 view .LVU42
+ 166 003e 0029     		cmp	r1, #0
+ 167 0040 0AD0     		beq	.L16
+ 168              		.loc 1 62 52 view .LVU43
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 5
+
+
+ 169 0042 0024     		movs	r4, #0
+ 170 0044 00E0     		b	.L9
+ 171              	.L15:
+ 172 0046 0024     		movs	r4, #0
+ 173              	.L9:
+ 174              		.loc 1 62 28 discriminator 6 view .LVU44
+ 175 0048 2B4A     		ldr	r2, .L28+8
+ 176 004a 9470     		strb	r4, [r2, #2]
+  63:Core/Src/buttons.c ****     buttons.togglePressed  = buttons.toggleChanged && buttons.toggleActive;
+ 177              		.loc 1 63 5 is_stmt 1 discriminator 6 view .LVU45
+ 178              		.loc 1 63 52 is_stmt 0 discriminator 6 view .LVU46
+ 179 004c 002B     		cmp	r3, #0
+ 180 004e 05D0     		beq	.L17
+ 181              		.loc 1 63 52 discriminator 1 view .LVU47
+ 182 0050 0029     		cmp	r1, #0
+ 183 0052 16D1     		bne	.L18
+ 184              		.loc 1 63 52 view .LVU48
+ 185 0054 0023     		movs	r3, #0
+ 186 0056 02E0     		b	.L10
+ 187              	.L16:
+  62:Core/Src/buttons.c ****     buttons.toggleReleased = buttons.toggleChanged && !buttons.toggleActive;
+ 188              		.loc 1 62 52 view .LVU49
+ 189 0058 0124     		movs	r4, #1
+ 190 005a F5E7     		b	.L9
+ 191              	.L17:
+ 192              		.loc 1 63 52 view .LVU50
+ 193 005c 0023     		movs	r3, #0
+ 194              	.L10:
+ 195              		.loc 1 63 28 discriminator 6 view .LVU51
+ 196 005e 264A     		ldr	r2, .L28+8
+ 197 0060 D370     		strb	r3, [r2, #3]
+  64:Core/Src/buttons.c **** 
+  65:Core/Src/buttons.c ****     buttons.slewActive     = button_state & SLEW_BUTTON_MASK;
+ 198              		.loc 1 65 5 is_stmt 1 discriminator 6 view .LVU52
+ 199              		.loc 1 65 43 is_stmt 0 discriminator 6 view .LVU53
+ 200 0062 0221     		movs	r1, #2
+ 201 0064 0140     		ands	r1, r0
+ 202              		.loc 1 65 28 discriminator 6 view .LVU54
+ 203 0066 1171     		strb	r1, [r2, #4]
+  66:Core/Src/buttons.c ****     buttons.slewChanged    = buttons.slewActive != buttons_prev.slewActive;
+ 204              		.loc 1 66 5 is_stmt 1 discriminator 6 view .LVU55
+ 205              		.loc 1 66 64 is_stmt 0 discriminator 6 view .LVU56
+ 206 0068 244B     		ldr	r3, .L28+12
+ 207 006a 1B79     		ldrb	r3, [r3, #4]
+ 208              		.loc 1 66 49 discriminator 6 view .LVU57
+ 209 006c CB1A     		subs	r3, r1, r3
+ 210 006e 5C1E     		subs	r4, r3, #1
+ 211 0070 A341     		sbcs	r3, r3, r4
+ 212 0072 DBB2     		uxtb	r3, r3
+ 213              		.loc 1 66 28 discriminator 6 view .LVU58
+ 214 0074 5371     		strb	r3, [r2, #5]
+  67:Core/Src/buttons.c ****     buttons.slewReleased   = buttons.slewChanged && !buttons.slewActive;
+ 215              		.loc 1 67 5 is_stmt 1 discriminator 6 view .LVU59
+ 216              		.loc 1 67 50 is_stmt 0 discriminator 6 view .LVU60
+ 217 0076 002B     		cmp	r3, #0
+ 218 0078 05D0     		beq	.L19
+ 219              		.loc 1 67 50 discriminator 1 view .LVU61
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 6
+
+
+ 220 007a 0029     		cmp	r1, #0
+ 221 007c 0CD0     		beq	.L20
+ 222              		.loc 1 67 50 view .LVU62
+ 223 007e 0024     		movs	r4, #0
+ 224 0080 02E0     		b	.L11
+ 225              	.L18:
+  63:Core/Src/buttons.c **** 
+ 226              		.loc 1 63 52 view .LVU63
+ 227 0082 0123     		movs	r3, #1
+ 228 0084 EBE7     		b	.L10
+ 229              	.L19:
+ 230              		.loc 1 67 50 view .LVU64
+ 231 0086 0024     		movs	r4, #0
+ 232              	.L11:
+ 233              		.loc 1 67 28 discriminator 6 view .LVU65
+ 234 0088 1B4A     		ldr	r2, .L28+8
+ 235 008a 9471     		strb	r4, [r2, #6]
+  68:Core/Src/buttons.c ****     buttons.slewPressed    = buttons.slewChanged && buttons.slewActive;
+ 236              		.loc 1 68 5 is_stmt 1 discriminator 6 view .LVU66
+ 237              		.loc 1 68 50 is_stmt 0 discriminator 6 view .LVU67
+ 238 008c 002B     		cmp	r3, #0
+ 239 008e 05D0     		beq	.L21
+ 240              		.loc 1 68 50 discriminator 1 view .LVU68
+ 241 0090 0029     		cmp	r1, #0
+ 242 0092 16D1     		bne	.L22
+ 243              		.loc 1 68 50 view .LVU69
+ 244 0094 0023     		movs	r3, #0
+ 245 0096 02E0     		b	.L12
+ 246              	.L20:
+  67:Core/Src/buttons.c ****     buttons.slewReleased   = buttons.slewChanged && !buttons.slewActive;
+ 247              		.loc 1 67 50 view .LVU70
+ 248 0098 0124     		movs	r4, #1
+ 249 009a F5E7     		b	.L11
+ 250              	.L21:
+ 251              		.loc 1 68 50 view .LVU71
+ 252 009c 0023     		movs	r3, #0
+ 253              	.L12:
+ 254              		.loc 1 68 28 discriminator 6 view .LVU72
+ 255 009e 1649     		ldr	r1, .L28+8
+ 256 00a0 CB71     		strb	r3, [r1, #7]
+  69:Core/Src/buttons.c **** 
+  70:Core/Src/buttons.c ****     buttons.rangeActive    = button_state & RANGE_BUTTON_MASK;
+ 257              		.loc 1 70 5 is_stmt 1 discriminator 6 view .LVU73
+ 258              		.loc 1 70 43 is_stmt 0 discriminator 6 view .LVU74
+ 259 00a2 0422     		movs	r2, #4
+ 260 00a4 0240     		ands	r2, r0
+ 261              		.loc 1 70 28 discriminator 6 view .LVU75
+ 262 00a6 0A72     		strb	r2, [r1, #8]
+  71:Core/Src/buttons.c ****     buttons.rangeChanged   = buttons.rangeActive != buttons_prev.rangeActive;
+ 263              		.loc 1 71 5 is_stmt 1 discriminator 6 view .LVU76
+ 264              		.loc 1 71 65 is_stmt 0 discriminator 6 view .LVU77
+ 265 00a8 144B     		ldr	r3, .L28+12
+ 266 00aa 1B7A     		ldrb	r3, [r3, #8]
+ 267              		.loc 1 71 50 discriminator 6 view .LVU78
+ 268 00ac D31A     		subs	r3, r2, r3
+ 269 00ae 581E     		subs	r0, r3, #1
+ 270 00b0 8341     		sbcs	r3, r3, r0
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 7
+
+
+ 271              	.LVL11:
+ 272              		.loc 1 71 50 discriminator 6 view .LVU79
+ 273 00b2 DBB2     		uxtb	r3, r3
+ 274              		.loc 1 71 28 discriminator 6 view .LVU80
+ 275 00b4 4B72     		strb	r3, [r1, #9]
+  72:Core/Src/buttons.c ****     buttons.rangeReleased  = buttons.rangeChanged && !buttons.rangeActive;
+ 276              		.loc 1 72 5 is_stmt 1 discriminator 6 view .LVU81
+ 277              		.loc 1 72 51 is_stmt 0 discriminator 6 view .LVU82
+ 278 00b6 002B     		cmp	r3, #0
+ 279 00b8 05D0     		beq	.L23
+ 280              		.loc 1 72 51 discriminator 1 view .LVU83
+ 281 00ba 002A     		cmp	r2, #0
+ 282 00bc 0CD0     		beq	.L24
+ 283              		.loc 1 72 51 view .LVU84
+ 284 00be 0020     		movs	r0, #0
+ 285 00c0 02E0     		b	.L13
+ 286              	.LVL12:
+ 287              	.L22:
+  68:Core/Src/buttons.c **** 
+ 288              		.loc 1 68 50 view .LVU85
+ 289 00c2 0123     		movs	r3, #1
+ 290 00c4 EBE7     		b	.L12
+ 291              	.LVL13:
+ 292              	.L23:
+ 293              		.loc 1 72 51 view .LVU86
+ 294 00c6 0020     		movs	r0, #0
+ 295              	.L13:
+ 296              		.loc 1 72 28 discriminator 6 view .LVU87
+ 297 00c8 0B49     		ldr	r1, .L28+8
+ 298 00ca 8872     		strb	r0, [r1, #10]
+  73:Core/Src/buttons.c ****     buttons.rangePressed   = buttons.rangeChanged && buttons.rangeActive;
+ 299              		.loc 1 73 5 is_stmt 1 discriminator 6 view .LVU88
+ 300              		.loc 1 73 51 is_stmt 0 discriminator 6 view .LVU89
+ 301 00cc 002B     		cmp	r3, #0
+ 302 00ce 05D0     		beq	.L25
+ 303              		.loc 1 73 51 discriminator 1 view .LVU90
+ 304 00d0 002A     		cmp	r2, #0
+ 305 00d2 0BD1     		bne	.L26
+ 306              		.loc 1 73 51 view .LVU91
+ 307 00d4 0023     		movs	r3, #0
+ 308 00d6 02E0     		b	.L14
+ 309              	.L24:
+  72:Core/Src/buttons.c ****     buttons.rangeReleased  = buttons.rangeChanged && !buttons.rangeActive;
+ 310              		.loc 1 72 51 view .LVU92
+ 311 00d8 0120     		movs	r0, #1
+ 312 00da F5E7     		b	.L13
+ 313              	.L25:
+ 314              		.loc 1 73 51 view .LVU93
+ 315 00dc 0023     		movs	r3, #0
+ 316              	.L14:
+ 317              		.loc 1 73 28 discriminator 6 view .LVU94
+ 318 00de 0649     		ldr	r1, .L28+8
+ 319 00e0 CB72     		strb	r3, [r1, #11]
+  74:Core/Src/buttons.c **** 
+  75:Core/Src/buttons.c ****     // Copy states into previous states
+  76:Core/Src/buttons.c ****     memcpy(&buttons_prev, &buttons, sizeof(ButtonStates_TypeDef));
+ 320              		.loc 1 76 5 is_stmt 1 discriminator 6 view .LVU95
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 8
+
+
+ 321 00e2 0C22     		movs	r2, #12
+ 322 00e4 0548     		ldr	r0, .L28+12
+ 323 00e6 FFF7FEFF 		bl	memcpy
+ 324              	.LVL14:
+  77:Core/Src/buttons.c **** }...
+ 325              		.loc 1 77 1 is_stmt 0 discriminator 6 view .LVU96
+ 326              		@ sp needed
+ 327 00ea 10BD     		pop	{r4, pc}
+ 328              	.L26:
+  73:Core/Src/buttons.c ****     buttons.rangePressed   = buttons.rangeChanged && buttons.rangeActive;
+ 329              		.loc 1 73 51 view .LVU97
+ 330 00ec 0123     		movs	r3, #1
+ 331 00ee F6E7     		b	.L14
+ 332              	.L29:
+ 333              		.align	2
+ 334              	.L28:
+ 335 00f0 00000000 		.word	.LANCHOR0
+ 336 00f4 00000000 		.word	.LANCHOR1
+ 337 00f8 00000000 		.word	buttons
+ 338 00fc 00000000 		.word	buttons_prev
+ 339              		.cfi_endproc
+ 340              	.LFE41:
+ 342              		.comm	adc,4,4
+ 343              		.comm	buttons_prev,12,4
+ 344              		.comm	buttons,12,4
+ 345              		.global	ADC_VAL_BUTTON_MAP
+ 346              		.global	ADC_BUTTON_THRESHOLDS
+ 347              		.section	.rodata.ADC_BUTTON_THRESHOLDS,"a"
+ 348              		.align	2
+ 349              		.set	.LANCHOR0,. + 0
+ 352              	ADC_BUTTON_THRESHOLDS:
+ 353 0000 8B000000 		.word	139
+ 354 0004 68010000 		.word	360
+ 355 0008 04020000 		.word	516
+ 356 000c D5020000 		.word	725
+ 357 0010 54030000 		.word	852
+ 358 0014 E9030000 		.word	1001
+ 359 0018 55040000 		.word	1109
+ 360              		.section	.rodata.ADC_VAL_BUTTON_MAP,"a"
+ 361              		.align	2
+ 362              		.set	.LANCHOR1,. + 0
+ 365              	ADC_VAL_BUTTON_MAP:
+ 366 0000 01020304 		.ascii	"\001\002\003\004\005\006\007"
+ 366      050607
+ 367              		.text
+ 368              	.Letext0:
+ 369              		.file 2 "/Applications/ARM/arm-none-eabi/include/machine/_default_types.h"
+ 370              		.file 3 "/Applications/ARM/arm-none-eabi/include/sys/_stdint.h"
+ 371              		.file 4 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/system_stm32l0xx.h"
+ 372              		.file 5 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/stm32l041xx.h"
+ 373              		.file 6 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/stm32l0xx.h"
+ 374              		.file 7 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_def.h"
+ 375              		.file 8 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_dma.h"
+ 376              		.file 9 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_adc.h"
+ 377              		.file 10 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal.h"
+ 378              		.file 11 "Core/Inc/adc.h"
+ 379              		.file 12 "Core/Inc/buttons.h"
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 9
+
+
+ 380              		.file 13 "/Applications/ARM/lib/gcc/arm-none-eabi/9.3.1/include/stddef.h"
+ 381              		.file 14 "/Applications/ARM/arm-none-eabi/include/sys/_types.h"
+ 382              		.file 15 "/Applications/ARM/arm-none-eabi/include/sys/reent.h"
+ 383              		.file 16 "/Applications/ARM/arm-none-eabi/include/sys/lock.h"
+ 384              		.file 17 "<built-in>"
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s 			page 10
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 buttons.c
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:16     .text.BUTTONS_init:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:24     .text.BUTTONS_init:0000000000000000 BUTTONS_init
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:67     .text.BUTTONS_init:0000000000000024 $d
+                            *COM*:0000000000000004 adc
+                            *COM*:000000000000000c buttons
+                            *COM*:000000000000000c buttons_prev
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:74     .text.BUTTONS_update:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:81     .text.BUTTONS_update:0000000000000000 BUTTONS_update
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:335    .text.BUTTONS_update:00000000000000f0 $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:365    .rodata.ADC_VAL_BUTTON_MAP:0000000000000000 ADC_VAL_BUTTON_MAP
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:352    .rodata.ADC_BUTTON_THRESHOLDS:0000000000000000 ADC_BUTTON_THRESHOLDS
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:348    .rodata.ADC_BUTTON_THRESHOLDS:0000000000000000 $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccm6hrvR.s:361    .rodata.ADC_VAL_BUTTON_MAP:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_ADC_getInstance
+memset
+ADC_readChannel
+memcpy

@@ -1,0 +1,358 @@
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 1
+
+
+   1              		.cpu cortex-m0plus
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 0
+  10              		.eabi_attribute 18, 4
+  11              		.file	"dac.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.DAC_init,"ax",%progbits
+  16              		.align	1
+  17              		.global	DAC_init
+  18              		.arch armv6s-m
+  19              		.syntax unified
+  20              		.code	16
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	DAC_init:
+  25              	.LFB40:
+  26              		.file 1 "Libraries/DAC_AD5452YRM/dac.c"
+   1:Libraries/DAC_AD5452YRM/dac.c **** /**
+   2:Libraries/DAC_AD5452YRM/dac.c ****  * @file dac.c
+   3:Libraries/DAC_AD5452YRM/dac.c ****  * @author irex
+   4:Libraries/DAC_AD5452YRM/dac.c ****  * @brief Simple library for driving the AD5452YRM DAC
+   5:Libraries/DAC_AD5452YRM/dac.c ****  * @version 0.1
+   6:Libraries/DAC_AD5452YRM/dac.c ****  * @date 2022-05-08
+   7:Libraries/DAC_AD5452YRM/dac.c ****  * 
+   8:Libraries/DAC_AD5452YRM/dac.c ****  * @copyright Copyright (c) 2022
+   9:Libraries/DAC_AD5452YRM/dac.c ****  * 
+  10:Libraries/DAC_AD5452YRM/dac.c ****  */
+  11:Libraries/DAC_AD5452YRM/dac.c **** 
+  12:Libraries/DAC_AD5452YRM/dac.c **** #include "dac.h"
+  13:Libraries/DAC_AD5452YRM/dac.c **** 
+  14:Libraries/DAC_AD5452YRM/dac.c **** SPI_HandleTypeDef* spi;
+  15:Libraries/DAC_AD5452YRM/dac.c **** 
+  16:Libraries/DAC_AD5452YRM/dac.c **** void DAC_init(void) {
+  27              		.loc 1 16 21 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  17:Libraries/DAC_AD5452YRM/dac.c ****     spi = SPI_getInstance();
+  36              		.loc 1 17 5 view .LVU1
+  37              		.loc 1 17 11 is_stmt 0 view .LVU2
+  38 0002 FFF7FEFF 		bl	SPI_getInstance
+  39              	.LVL0:
+  40              		.loc 1 17 9 view .LVU3
+  41 0006 014B     		ldr	r3, .L2
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 2
+
+
+  42 0008 1860     		str	r0, [r3]
+  18:Libraries/DAC_AD5452YRM/dac.c **** }
+  43              		.loc 1 18 1 view .LVU4
+  44              		@ sp needed
+  45 000a 10BD     		pop	{r4, pc}
+  46              	.L3:
+  47              		.align	2
+  48              	.L2:
+  49 000c 00000000 		.word	spi
+  50              		.cfi_endproc
+  51              	.LFE40:
+  53              		.section	.text.DAC_setRaw,"ax",%progbits
+  54              		.align	1
+  55              		.global	DAC_setRaw
+  56              		.syntax unified
+  57              		.code	16
+  58              		.thumb_func
+  59              		.fpu softvfp
+  61              	DAC_setRaw:
+  62              	.LVL1:
+  63              	.LFB41:
+  19:Libraries/DAC_AD5452YRM/dac.c **** 
+  20:Libraries/DAC_AD5452YRM/dac.c **** void DAC_setRaw(uint16_t val) {
+  64              		.loc 1 20 31 is_stmt 1 view -0
+  65              		.cfi_startproc
+  66              		@ args = 0, pretend = 0, frame = 8
+  67              		@ frame_needed = 0, uses_anonymous_args = 0
+  68              		.loc 1 20 31 is_stmt 0 view .LVU6
+  69 0000 10B5     		push	{r4, lr}
+  70              	.LCFI1:
+  71              		.cfi_def_cfa_offset 8
+  72              		.cfi_offset 4, -8
+  73              		.cfi_offset 14, -4
+  74 0002 82B0     		sub	sp, sp, #8
+  75              	.LCFI2:
+  76              		.cfi_def_cfa_offset 16
+  21:Libraries/DAC_AD5452YRM/dac.c ****     // DAC input shift register for 12-bit looks like:
+  22:Libraries/DAC_AD5452YRM/dac.c ****     // ---------------------------------------------------------------------------------
+  23:Libraries/DAC_AD5452YRM/dac.c ****     // | C1 | C0 | B11 | B10 | B9 | B8 | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 | x | x |
+  24:Libraries/DAC_AD5452YRM/dac.c ****     // ---------------------------------------------------------------------------------
+  25:Libraries/DAC_AD5452YRM/dac.c ****     // Bitshift left for the two empty LSB in the shift register
+  26:Libraries/DAC_AD5452YRM/dac.c ****     val = val << 2;
+  77              		.loc 1 26 5 is_stmt 1 view .LVU7
+  78              	.LVL2:
+  27:Libraries/DAC_AD5452YRM/dac.c ****     // Mask off the control bits (which should be 0 for falling edge clock)
+  28:Libraries/DAC_AD5452YRM/dac.c ****     val = val & DAC_DATA_MASK;
+  79              		.loc 1 28 5 view .LVU8
+  80              		.loc 1 28 9 is_stmt 0 view .LVU9
+  81 0004 0005     		lsls	r0, r0, #20
+  82              	.LVL3:
+  83              		.loc 1 28 9 view .LVU10
+  84 0006 830C     		lsrs	r3, r0, #18
+  85              	.LVL4:
+  29:Libraries/DAC_AD5452YRM/dac.c ****     uint8_t val_arr[2] = {val >> 8, val & 0xFF};
+  86              		.loc 1 29 5 is_stmt 1 view .LVU11
+  87              		.loc 1 29 13 is_stmt 0 view .LVU12
+  88 0008 800E     		lsrs	r0, r0, #26
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 3
+
+
+  89 000a 6A46     		mov	r2, sp
+  90 000c 1071     		strb	r0, [r2, #4]
+  91 000e 5371     		strb	r3, [r2, #5]
+  30:Libraries/DAC_AD5452YRM/dac.c ****     // Could be sent using 16-bit mode, but the LCD uses 8-bit and I don't think
+  31:Libraries/DAC_AD5452YRM/dac.c ****     // It's worth the overhead. 
+  32:Libraries/DAC_AD5452YRM/dac.c ****     HAL_GPIO_WritePin(SPI_CS_DAC_GPIO_Port, SPI_CS_DAC_Pin, GPIO_PIN_RESET);
+  92              		.loc 1 32 5 is_stmt 1 view .LVU13
+  93 0010 A024     		movs	r4, #160
+  94 0012 E405     		lsls	r4, r4, #23
+  95 0014 0022     		movs	r2, #0
+  96 0016 1021     		movs	r1, #16
+  97 0018 2000     		movs	r0, r4
+  98 001a FFF7FEFF 		bl	HAL_GPIO_WritePin
+  99              	.LVL5:
+  33:Libraries/DAC_AD5452YRM/dac.c ****     HAL_SPI_Transmit(spi, val_arr, 2, HAL_MAX_DELAY);
+ 100              		.loc 1 33 5 view .LVU14
+ 101 001e 0123     		movs	r3, #1
+ 102 0020 064A     		ldr	r2, .L5
+ 103 0022 1068     		ldr	r0, [r2]
+ 104 0024 5B42     		rsbs	r3, r3, #0
+ 105 0026 0222     		movs	r2, #2
+ 106 0028 01A9     		add	r1, sp, #4
+ 107 002a FFF7FEFF 		bl	HAL_SPI_Transmit
+ 108              	.LVL6:
+  34:Libraries/DAC_AD5452YRM/dac.c ****     HAL_GPIO_WritePin(SPI_CS_DAC_GPIO_Port, SPI_CS_DAC_Pin, GPIO_PIN_SET);
+ 109              		.loc 1 34 5 view .LVU15
+ 110 002e 0122     		movs	r2, #1
+ 111 0030 1021     		movs	r1, #16
+ 112 0032 2000     		movs	r0, r4
+ 113 0034 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 114              	.LVL7:
+  35:Libraries/DAC_AD5452YRM/dac.c **** }
+ 115              		.loc 1 35 1 is_stmt 0 view .LVU16
+ 116 0038 02B0     		add	sp, sp, #8
+ 117              		@ sp needed
+ 118 003a 10BD     		pop	{r4, pc}
+ 119              	.L6:
+ 120              		.align	2
+ 121              	.L5:
+ 122 003c 00000000 		.word	spi
+ 123              		.cfi_endproc
+ 124              	.LFE41:
+ 126              		.global	__aeabi_fcmplt
+ 127              		.global	__aeabi_f2d
+ 128              		.global	__aeabi_dcmpgt
+ 129              		.global	__aeabi_fmul
+ 130              		.global	__aeabi_ddiv
+ 131              		.global	__aeabi_d2uiz
+ 132              		.section	.text.DAC_volts2Raw,"ax",%progbits
+ 133              		.align	1
+ 134              		.global	DAC_volts2Raw
+ 135              		.syntax unified
+ 136              		.code	16
+ 137              		.thumb_func
+ 138              		.fpu softvfp
+ 140              	DAC_volts2Raw:
+ 141              	.LVL8:
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 4
+
+
+ 142              	.LFB43:
+  36:Libraries/DAC_AD5452YRM/dac.c **** 
+  37:Libraries/DAC_AD5452YRM/dac.c **** void DAC_setVolts(float volts) {
+  38:Libraries/DAC_AD5452YRM/dac.c ****     uint16_t raw_val = DAC_volts2Raw(volts);
+  39:Libraries/DAC_AD5452YRM/dac.c ****     DAC_setRaw(raw_val);
+  40:Libraries/DAC_AD5452YRM/dac.c **** }
+  41:Libraries/DAC_AD5452YRM/dac.c **** 
+  42:Libraries/DAC_AD5452YRM/dac.c **** uint16_t DAC_volts2Raw(float volts) {
+ 143              		.loc 1 42 37 is_stmt 1 view -0
+ 144              		.cfi_startproc
+ 145              		@ args = 0, pretend = 0, frame = 0
+ 146              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147              		.loc 1 42 37 is_stmt 0 view .LVU18
+ 148 0000 10B5     		push	{r4, lr}
+ 149              	.LCFI3:
+ 150              		.cfi_def_cfa_offset 8
+ 151              		.cfi_offset 4, -8
+ 152              		.cfi_offset 14, -4
+ 153 0002 041C     		adds	r4, r0, #0
+  43:Libraries/DAC_AD5452YRM/dac.c ****     if (volts < 0) {
+ 154              		.loc 1 43 5 is_stmt 1 view .LVU19
+ 155              		.loc 1 43 8 is_stmt 0 view .LVU20
+ 156 0004 0021     		movs	r1, #0
+ 157 0006 FFF7FEFF 		bl	__aeabi_fcmplt
+ 158              	.LVL9:
+ 159              		.loc 1 43 8 view .LVU21
+ 160 000a 0028     		cmp	r0, #0
+ 161 000c 16D1     		bne	.L9
+  44:Libraries/DAC_AD5452YRM/dac.c ****         return 0;
+  45:Libraries/DAC_AD5452YRM/dac.c ****     } else if (volts > DAC_VREF) {
+ 162              		.loc 1 45 12 is_stmt 1 view .LVU22
+ 163              		.loc 1 45 22 is_stmt 0 view .LVU23
+ 164 000e 201C     		adds	r0, r4, #0
+ 165 0010 FFF7FEFF 		bl	__aeabi_f2d
+ 166              	.LVL10:
+ 167              		.loc 1 45 15 view .LVU24
+ 168 0014 0B4A     		ldr	r2, .L11
+ 169 0016 0C4B     		ldr	r3, .L11+4
+ 170 0018 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 171              	.LVL11:
+ 172 001c 0028     		cmp	r0, #0
+ 173 001e 0FD1     		bne	.L10
+  46:Libraries/DAC_AD5452YRM/dac.c ****         return DAC_MAX_RAW;
+  47:Libraries/DAC_AD5452YRM/dac.c ****     } else {
+  48:Libraries/DAC_AD5452YRM/dac.c ****     return (uint16_t) ((volts * DAC_MAX_RAW) / DAC_VREF);
+ 174              		.loc 1 48 5 is_stmt 1 view .LVU25
+ 175              		.loc 1 48 31 is_stmt 0 view .LVU26
+ 176 0020 0A49     		ldr	r1, .L11+8
+ 177 0022 201C     		adds	r0, r4, #0
+ 178 0024 FFF7FEFF 		bl	__aeabi_fmul
+ 179              	.LVL12:
+ 180 0028 FFF7FEFF 		bl	__aeabi_f2d
+ 181              	.LVL13:
+ 182              		.loc 1 48 46 view .LVU27
+ 183 002c 054A     		ldr	r2, .L11
+ 184 002e 064B     		ldr	r3, .L11+4
+ 185 0030 FFF7FEFF 		bl	__aeabi_ddiv
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 5
+
+
+ 186              	.LVL14:
+ 187              		.loc 1 48 12 view .LVU28
+ 188 0034 FFF7FEFF 		bl	__aeabi_d2uiz
+ 189              	.LVL15:
+ 190 0038 80B2     		uxth	r0, r0
+ 191              	.L8:
+  49:Libraries/DAC_AD5452YRM/dac.c ****     }
+  50:Libraries/DAC_AD5452YRM/dac.c **** }...
+ 192              		.loc 1 50 1 view .LVU29
+ 193              		@ sp needed
+ 194              	.LVL16:
+ 195              		.loc 1 50 1 view .LVU30
+ 196 003a 10BD     		pop	{r4, pc}
+ 197              	.LVL17:
+ 198              	.L9:
+  44:Libraries/DAC_AD5452YRM/dac.c ****         return 0;
+ 199              		.loc 1 44 16 view .LVU31
+ 200 003c 0020     		movs	r0, #0
+ 201 003e FCE7     		b	.L8
+ 202              	.L10:
+  46:Libraries/DAC_AD5452YRM/dac.c ****         return DAC_MAX_RAW;
+ 203              		.loc 1 46 16 view .LVU32
+ 204 0040 0348     		ldr	r0, .L11+12
+ 205 0042 FAE7     		b	.L8
+ 206              	.L12:
+ 207              		.align	2
+ 208              	.L11:
+ 209 0044 FCA9F1D2 		.word	-755914244
+ 210 0048 4D62F03F 		.word	1072718413
+ 211 004c 00F07F45 		.word	1166012416
+ 212 0050 FF0F0000 		.word	4095
+ 213              		.cfi_endproc
+ 214              	.LFE43:
+ 216              		.section	.text.DAC_setVolts,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	DAC_setVolts
+ 219              		.syntax unified
+ 220              		.code	16
+ 221              		.thumb_func
+ 222              		.fpu softvfp
+ 224              	DAC_setVolts:
+ 225              	.LVL18:
+ 226              	.LFB42:
+  37:Libraries/DAC_AD5452YRM/dac.c **** void DAC_setVolts(float volts) {
+ 227              		.loc 1 37 32 is_stmt 1 view -0
+ 228              		.cfi_startproc
+ 229              		@ args = 0, pretend = 0, frame = 0
+ 230              		@ frame_needed = 0, uses_anonymous_args = 0
+  37:Libraries/DAC_AD5452YRM/dac.c **** void DAC_setVolts(float volts) {
+ 231              		.loc 1 37 32 is_stmt 0 view .LVU34
+ 232 0000 10B5     		push	{r4, lr}
+ 233              	.LCFI4:
+ 234              		.cfi_def_cfa_offset 8
+ 235              		.cfi_offset 4, -8
+ 236              		.cfi_offset 14, -4
+  38:Libraries/DAC_AD5452YRM/dac.c ****     uint16_t raw_val = DAC_volts2Raw(volts);
+ 237              		.loc 1 38 5 is_stmt 1 view .LVU35
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 6
+
+
+  38:Libraries/DAC_AD5452YRM/dac.c ****     uint16_t raw_val = DAC_volts2Raw(volts);
+ 238              		.loc 1 38 24 is_stmt 0 view .LVU36
+ 239 0002 FFF7FEFF 		bl	DAC_volts2Raw
+ 240              	.LVL19:
+  39:Libraries/DAC_AD5452YRM/dac.c ****     DAC_setRaw(raw_val);
+ 241              		.loc 1 39 5 is_stmt 1 view .LVU37
+ 242 0006 FFF7FEFF 		bl	DAC_setRaw
+ 243              	.LVL20:
+  40:Libraries/DAC_AD5452YRM/dac.c **** }
+ 244              		.loc 1 40 1 is_stmt 0 view .LVU38
+ 245              		@ sp needed
+ 246 000a 10BD     		pop	{r4, pc}
+ 247              		.cfi_endproc
+ 248              	.LFE42:
+ 250              		.comm	spi,4,4
+ 251              		.text
+ 252              	.Letext0:
+ 253              		.file 2 "/Applications/ARM/arm-none-eabi/include/machine/_default_types.h"
+ 254              		.file 3 "/Applications/ARM/arm-none-eabi/include/sys/_stdint.h"
+ 255              		.file 4 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/system_stm32l0xx.h"
+ 256              		.file 5 "Drivers/CMSIS/Device/ST/STM32L0xx/Include/stm32l041xx.h"
+ 257              		.file 6 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_def.h"
+ 258              		.file 7 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_gpio.h"
+ 259              		.file 8 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_dma.h"
+ 260              		.file 9 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_spi.h"
+ 261              		.file 10 "Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal.h"
+ 262              		.file 11 "Core/Inc/spi.h"
+ARM GAS  /var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 dac.c
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:16     .text.DAC_init:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:24     .text.DAC_init:0000000000000000 DAC_init
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:49     .text.DAC_init:000000000000000c $d
+                            *COM*:0000000000000004 spi
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:54     .text.DAC_setRaw:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:61     .text.DAC_setRaw:0000000000000000 DAC_setRaw
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:122    .text.DAC_setRaw:000000000000003c $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:133    .text.DAC_volts2Raw:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:140    .text.DAC_volts2Raw:0000000000000000 DAC_volts2Raw
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:209    .text.DAC_volts2Raw:0000000000000044 $d
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:217    .text.DAC_setVolts:0000000000000000 $t
+/var/folders/b6/_lrwbzzx5qg46wbggw31g5280000gn/T//ccstUCwx.s:224    .text.DAC_setVolts:0000000000000000 DAC_setVolts
+
+UNDEFINED SYMBOLS
+SPI_getInstance
+HAL_GPIO_WritePin
+HAL_SPI_Transmit
+__aeabi_fcmplt
+__aeabi_f2d
+__aeabi_dcmpgt
+__aeabi_fmul
+__aeabi_ddiv
+__aeabi_d2uiz
