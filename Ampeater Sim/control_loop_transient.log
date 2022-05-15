@@ -1,0 +1,24 @@
+Circuit: * C:\Users\irex\Documents\LTspiceXVII\Ampeater\control_loop_transient.asc
+
+WARNING: Less than two connections to node NC_01.  This node is used by V4.
+Direct Newton iteration for .op point succeeded.
+Changing Tseed to 2.92969e-012
+
+Date: Sat May 14 20:28:27 2022
+Total elapsed time: 0.250 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 2470
+traniter = 2437
+tranpoints = 1185
+accept = 1147
+rejected = 37
+matrix size = 321
+fillins = 379
+solver = Normal
+Thread vector: 23.3/17.7[4] 6.3/5.9[1] 7.7/6.2[4] 7.2/5.1[2]  2592/500
+Matrix Compiler1: 37.96 KB object code size  11.8/8.7/[5.4]
+Matrix Compiler2: off  [8.0]/9.1/13.0
+
