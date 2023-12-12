@@ -55,7 +55,7 @@
 
 
 #define NUM_DISPLAYED_DIGITS 4 // Max number of digits to display for readout
-#define FORMATTER_HIGH_RNG "%d.%02d"
+#define FORMATTER_HIGH_RNG "%d.%02d " // Extra space to remove trailing 0's in HIGH range
 #define FORMATTER_LOW_RNG  "%d.%03d"
 #define VALUE_CHAR_SCALER 4
 #define INFO_CHAR_SCALER 3
@@ -98,8 +98,8 @@
 
 /* USER CODE BEGIN PV */
 typedef enum {
-    LOW_RANGE = 1,
-    HIGH_RANGE = 0
+    LOW_RANGE = 0,
+    HIGH_RANGE = 1
 } RangeMode_t;
 /* USER CODE END PV */
 
@@ -108,6 +108,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void displayInfo(uint32_t output_on, uint32_t range_mode, 
                     float iset, float imeasured);
+void setRange(RangeMode_t range_mode);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -148,21 +149,24 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-    ENCODER_init(ENCODER_MIN_VAL, ENCODER_MAX_VAL_LOW);
-    DAC_init();
-    buttons = BUTTONS_init();
-    adc = HAL_ADC_getInstance();
-    HAL_ADCEx_Calibration_Start(adc, ADC_SINGLE_ENDED);
-    char out_buff[100] = {0};
-    uint32_t output_on = 0;
-    uint16_t vsense_raw = 0; // ADC reading from Vsense node
-    uint16_t vfet_raw = 0; // ADC reading from VFET node
-    RangeMode_t range_mode = LOW_RANGE;
-    float vref = 3.3; // V TODO: Calculate using Vrefint
-    float vRs = 0.0; // Voltage across sense resistor
-    float imeasured = 0.0; // Measured sink current
-    float iset = 0.0; // Set current
-    float vset = 0.0; // DAC set voltage
+  ENCODER_init(ENCODER_MIN_VAL, ENCODER_MAX_VAL_LOW);
+  DAC_init();
+  buttons = BUTTONS_init();
+  adc = HAL_ADC_getInstance();
+  HAL_ADCEx_Calibration_Start(adc, ADC_SINGLE_ENDED);
+  char out_buff[100] = {0};
+  uint32_t output_on = 0;
+  uint16_t vsense_raw = 0; // ADC reading from Vsense node
+  uint16_t vfet_raw = 0; // ADC reading from VFET node
+  RangeMode_t range_mode = LOW_RANGE;
+  float vref = 3.3; // V TODO: Calculate using Vrefint
+  float vRs = 0.0; // Voltage across sense resistor
+  float imeasured = 0.0; // Measured sink current
+  float iset = 0.0; // Set current
+  float vset = 0.0; // DAC set voltage
+
+  // Initialize the current range to LOW
+  setRange(LOW_RANGE);
 
 #ifdef USE_LCD
     HAL_UART_MspDeInit(UART_getInstance(UART2));
@@ -198,19 +202,11 @@ int main(void)
             if (range_mode == HIGH_RANGE) {
                 // Set to LOW mode
                 range_mode = LOW_RANGE;
-                HAL_GPIO_WritePin(RANGE_SW_GPIO_Port, RANGE_SW_Pin, LOW_RANGE);
-                // Scale the encoder value so that the output current stays the 
-                // same (or clamps)
-                ENCODER_setValue(ENCODER_getValue() * 
-                                    ISET_MAX_HIGH_AMPS / ISET_MAX_LOW_AMPS);
+                setRange(LOW_RANGE);
             } else {
                 // Set to HIGH mode
                 range_mode = HIGH_RANGE;
-                HAL_GPIO_WritePin(RANGE_SW_GPIO_Port, RANGE_SW_Pin, HIGH_RANGE);
-                // Scale the encoder value so that the output current stays the 
-                // same (or clamps)
-                ENCODER_setValue(ENCODER_getValue() * 
-                                    ISET_MAX_LOW_AMPS / ISET_MAX_HIGH_AMPS);
+                setRange(HIGH_RANGE);
             }
         }
 
@@ -386,6 +382,25 @@ void displayInfo(uint32_t output_on, uint32_t range_mode,
                             RANGE_LCD_X_START, RANGE_LCD_Y_START + INFO_LCD_Y_OFFSET,
                             color, VALUE_CHAR_SCALER, BLACK);
         range_last = range_mode;
+    }
+}
+
+void setRange(RangeMode_t range_mode) {
+    if (range_mode == HIGH_RANGE) {
+        // Set to LOW mode
+        HAL_GPIO_WritePin(RANGE_SW_GPIO_Port, RANGE_SW_Pin, LOW_RANGE);
+        // Scale the encoder value so that the output current stays the 
+        // same (or clamps)
+        ENCODER_setValue(ENCODER_getValue() * 
+                            ISET_MAX_LOW_AMPS / ISET_MAX_HIGH_AMPS);
+    } else {
+        // Set to HIGH mode
+        HAL_GPIO_WritePin(RANGE_SW_GPIO_Port, RANGE_SW_Pin, HIGH_RANGE);
+        // Scale the encoder value so that the output current stays the 
+        // same (or clamps)
+        ENCODER_setValue(ENCODER_getValue() * 
+                            ISET_MAX_HIGH_AMPS / ISET_MAX_LOW_AMPS);
+
     }
 }
 /* USER CODE END 4 */
